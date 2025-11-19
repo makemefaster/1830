@@ -7,7 +7,7 @@
     <style>
         /* CSS for the input/management view */
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        input[type="number"], input[type="date"], button { padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        input[type="date"], button { padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; }
         textarea { padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; }
         button { background-color: #4CAF50; color: white; cursor: pointer; border: none; margin-right: 10px; }
         button:hover { background-color: #45a049; }
@@ -89,12 +89,11 @@
                 
                 let courtMatch = [];
                 
-                let p1 = availablePlayers.shift(); // Strongest
-                let p2 = availablePlayers.shift(); // 2nd Strongest
-                let p3 = availablePlayers.pop();   // Weakest
-                let p4 = availablePlayers.pop();   // 2nd Weakest
+                let p1 = availablePlayers.shift(); 
+                let p2 = availablePlayers.shift(); 
+                let p3 = availablePlayers.pop();   
+                let p4 = availablePlayers.pop();   
                 
-                // Team A = P1 + P3 (Strong + Weak); Team B = P2 + P4 (Medium-Strong + Medium-Weak)
                 let teamA = shuffleArray([p1, p3]);
                 let teamB = shuffleArray([p2, p4]); 
                 
@@ -125,13 +124,13 @@
             localStorage.setItem(STORAGE_KEY, playerListText);
         }
 
-        // --- MAIN SCHEDULER FUNCTION (SIMPLIFIED COURT LOGIC) ---
+        // --- MAIN SCHEDULER FUNCTION ---
 
         function generateSchedule() {
             const playersInputText = document.getElementById('playerList').value;
             const sessionDate = document.getElementById('sessionDate').value;
             
-            // NEW LOGIC: Court names list is now the ONLY source of court count.
+            // Get court names and calculate count
             const courtNames1 = document.getElementById('courtNamesHour1').value.split(',').map(n => n.trim()).filter(n => n !== '');
             const courtsHour1 = courtNames1.length;
             
@@ -182,7 +181,7 @@
                 tableHTML += '<tr><th>Court</th><th>Player 1</th><th>Player 2</th><th>Player 3</th><th>Player 4</th></tr>';
                 
                 schedule.forEach((match, index) => {
-                    const courtID = courtNames[index] || `Court ${index + 1}`; // Use custom name or default
+                    const courtID = courtNames[index] || `Court ${index + 1}`; 
                     const playerNames = match.map(p => p.name);
                     tableHTML += `<tr class="court-title"><td>${courtID}</td><td>${playerNames[0]}</td><td>${playerNames[1]}</td><td>${playerNames[2]}</td><td>${playerNames[3]}</td></tr>`;
                 });
@@ -278,4 +277,39 @@
             
             const shareWindow = window.open('', '_blank');
             shareWindow.document.write(newWindowContent);
-            share
+            shareWindow.document.close();
+            shareWindow.focus();
+        }
+
+        // --- INITIALIZATION (FIXED LOGIC) ---
+        
+        window.onload = function() {
+            loadPlayersFromStorage(); 
+            
+            // Corrected logic to calculate next Wednesday
+            const dateInput = document.getElementById('sessionDate');
+            const today = new Date();
+            // 3 is Wednesday (0=Sun, 1=Mon, ...)
+            const dayOfWeek = 3;
+            let currentDay = today.getDay();
+            let daysUntilNextWednesday = (dayOfWeek + 7 - currentDay) % 7;
+            
+            // If today is Wednesday, daysUntilNextWednesday is 0, so we want the following Wednesday (add 7 days)
+            if (daysUntilNextWednesday === 0) {
+                 daysUntilNextWednesday = 7;
+            }
+            
+            const nextWednesday = new Date(today);
+            nextWednesday.setDate(today.getDate() + daysUntilNextWednesday);
+            
+            const yyyy = nextWednesday.getFullYear();
+            const mm = String(nextWednesday.getMonth() + 1).padStart(2, '0');
+            const dd = String(nextWednesday.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+            
+            generateSchedule(); 
+        };
+        // --- JAVASCRIPT LOGIC END ---
+    </script>
+</body>
+</html>
