@@ -33,10 +33,10 @@
 
     <p>Court Details:</p>
     
-    <p style="margin: 5px 0 5px 0;">**6:30 PM Courts** (Enter comma-separated numbers/names):</p>
+    <p style="margin: 5px 0 5px 0;">**6:30 PM Courts** (Enter comma-separated numbers/names, e.g., *12, 17, 11, 5*):</p>
     <textarea id="courtNamesHour1" rows="1">1, 2, 3, 4</textarea>
 
-    <p style="margin: 5px 0 5px 0;">**7:30 PM Courts** (Enter comma-separated numbers/names):</p>
+    <p style="margin: 5px 0 5px 0;">**7:30 PM Courts** (Enter comma-separated numbers/names, e.g., *A, B, C, D, E*):</p>
     <textarea id="courtNamesHour2" rows="1">5, 6, 7, 8, 9</textarea>
     <br>
 
@@ -89,11 +89,12 @@
                 
                 let courtMatch = [];
                 
-                let p1 = availablePlayers.shift(); 
-                let p2 = availablePlayers.shift(); 
-                let p3 = availablePlayers.pop();   
-                let p4 = availablePlayers.pop();   
+                let p1 = availablePlayers.shift(); // Strongest
+                let p2 = availablePlayers.shift(); // 2nd Strongest
+                let p3 = availablePlayers.pop();   // Weakest
+                let p4 = availablePlayers.pop();   // 2nd Weakest
                 
+                // Team A = P1 + P3 (Strong + Weak); Team B = P2 + P4 (Medium-Strong + Medium-Weak)
                 let teamA = shuffleArray([p1, p3]);
                 let teamB = shuffleArray([p2, p4]); 
                 
@@ -102,214 +103,4 @@
                 if (courtMatch.length === 4) {
                     schedule.push(courtMatch);
                 } else {
-                     sittingOut.push(...courtMatch.filter(p => p !== undefined));
-                }
-            }
-
-            return { schedule: schedule, sittingOut: sittingOut };
-        }
-
-        // --- LOCAL STORAGE FUNCTIONS (Unchanged) ---
-        
-        function loadPlayersFromStorage() {
-            const savedList = localStorage.getItem(STORAGE_KEY);
-            const textarea = document.getElementById('playerList');
-            
-            if (savedList) {
-                textarea.value = savedList;
-            }
-        }
-
-        function savePlayersToStorage(playerListText) {
-            localStorage.setItem(STORAGE_KEY, playerListText);
-        }
-
-        // --- MAIN SCHEDULER FUNCTION ---
-
-        function generateSchedule() {
-            const playersInputText = document.getElementById('playerList').value;
-            const sessionDate = document.getElementById('sessionDate').value;
-            
-            // Get court names and calculate count
-            const courtNames1 = document.getElementById('courtNamesHour1').value.split(',').map(n => n.trim()).filter(n => n !== '');
-            const courtsHour1 = courtNames1.length;
-            
-            const courtNames2 = document.getElementById('courtNamesHour2').value.split(',').map(n => n.trim()).filter(n => n !== '');
-            const courtsHour2 = courtNames2.length;
-            
-            savePlayersToStorage(playersInputText);
-
-            let players = [];
-            
-            playersInputText.split(',').forEach((item, index, array) => {
-                if (index % 2 === 0 && array[index + 1]) {
-                    const name = item.trim();
-                    const ability = parseFloat(array[index + 1].trim());
-                    if (name.length > 0 && !isNaN(ability)) {
-                        players.push({ name: name, ability: ability });
-                    }
-                }
-            });
-
-            if (players.length === 0) {
-                document.getElementById('scheduleOutput').innerHTML = '<p style="color: red;">Error: Please enter player names and ability scores correctly (e.g., Name,Ability).</p>';
-                return;
-            }
-
-            if (courtsHour1 === 0 || courtsHour2 === 0) {
-                 document.getElementById('scheduleOutput').innerHTML = `<p style="color: red;">Error: Please enter the court numbers for both hours in the boxes provided.</p>`;
-                 return;
-            }
-
-
-            // Scheduling
-            let shuffledPlayers = shuffleArray(players);
-            
-            let h1Result = scheduleByAbility(shuffledPlayers, courtsHour1);
-            let sittingOut1 = h1Result.sittingOut;
-            
-            let playingHour1Names = h1Result.schedule.flat().map(p => p.name);
-            let playingHour1 = players.filter(p => playingHour1Names.includes(p.name));
-            
-            let hour2Pool = [...sittingOut1, ...shuffleArray(playingHour1)];
-            let h2Result = scheduleByAbility(hour2Pool, courtsHour2);
-
-            // 4. Display Results (Uses custom court names)
-            const createTable = (title, schedule, sitOut, courtNames) => {
-                let tableHTML = `<h3>${title} (${schedule.length} Courts)</h3>`;
-                tableHTML += '<table class="schedule-table">';
-                tableHTML += '<tr><th>Court</th><th>Player 1</th><th>Player 2</th><th>Player 3</th><th>Player 4</th></tr>';
-                
-                schedule.forEach((match, index) => {
-                    const courtID = courtNames[index] || `Court ${index + 1}`; 
-                    const playerNames = match.map(p => p.name);
-                    tableHTML += `<tr class="court-title"><td>${courtID}</td><td>${playerNames[0]}</td><td>${playerNames[1]}</td><td>${playerNames[2]}</td><td>${playerNames[3]}</td></tr>`;
-                });
-
-                if (sitOut.length > 0) {
-                    const sitOutNames = sitOut.map(p => `${p.name} (${p.ability})`).join(', ');
-                    tableHTML += `<tr><td class="sit-out" colspan="5">Sit Out: ${sitOutNames}</td></tr>`;
-                }
-                
-                tableHTML += '</table>';
-                return tableHTML;
-            };
-
-            let outputHTML = `<h2>Generated Schedule for ${sessionDate}</h2>`;
-            outputHTML += createTable(`Hour 1 (6:30 PM)`, h1Result.schedule, sittingOut1, courtNames1);
-            outputHTML += '<hr>';
-            outputHTML += createTable(`Hour 2 (7:30 PM)`, h2Result.schedule, h2Result.sittingOut, courtNames2);
-
-            document.getElementById('scheduleOutput').innerHTML = outputHTML;
-        }
-
-        // --- SHAREABLE PAGE FUNCTION (Unchanged CSS) ---
-
-        function showShareableSchedule() {
-            const outputDiv = document.getElementById('scheduleOutput');
-            const sessionDate = document.getElementById('sessionDate').value;
-            
-            if (!outputDiv.innerHTML || outputDiv.innerHTML.length < 100) {
-                alert("Please generate the schedule first before viewing the shareable view.");
-                return;
-            }
-            
-            const scheduleContent = outputDiv.innerHTML;
-            
-            // Create simple HTML content for the new window
-            const newWindowContent = `
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <title>Wednesday Night Tennis Schedule - ${sessionDate}</title>
-                    <style>
-                        /* Queen's Club Blue and White Color Scheme */
-                        body { 
-                            font-family: Arial, sans-serif; 
-                            max-width: 800px; 
-                            margin: 0 auto; 
-                            padding: 20px; 
-                            color: #333; 
-                            background-color: #FFFFFF;
-                        }
-                        h1, h2, h3 { 
-                            color: #003366; /* Deep Navy Blue */
-                            border-bottom: 2px solid #D4D4D4;
-                            padding-bottom: 5px;
-                        }
-                        .schedule-table { 
-                            width: 100%; 
-                            border-collapse: collapse; 
-                            margin-top: 20px; 
-                            border: 2px solid #D4D4D4; 
-                        }
-                        .schedule-table th, .schedule-table td { 
-                            border: 1px solid #D4D4D4; 
-                            padding: 10px; 
-                            text-align: center; 
-                        }
-                        .schedule-table th { 
-                            background-color: #003366; /* Deep Navy Blue Header BG */
-                            color: #FFFFFF; /* White Header Text */
-                            font-weight: bold;
-                            text-transform: uppercase;
-                        }
-                        .sit-out { 
-                            background-color: #F0F8FF; /* Light Blue Tint for sit-out row */
-                            font-weight: bold; 
-                            color: #003366;
-                        }
-                        .court-title {
-                            font-weight: 500;
-                        }
-                        @media print { button { display: none; } }
-                    </style>
-                </head>
-                <body>
-                    <h1>🎾 Wednesday Night Tennis Schedule - ${sessionDate}</h1>
-                    ${scheduleContent}
-                    <div style="text-align: center; margin-top: 30px;">
-                        <button onclick="window.print()">🖨️ Print / Save as PDF</button>
-                    </div>
-                </body>
-                </html>
-            `;
-            
-            const shareWindow = window.open('', '_blank');
-            shareWindow.document.write(newWindowContent);
-            shareWindow.document.close();
-            shareWindow.focus();
-        }
-
-        // --- INITIALIZATION (FIXED LOGIC) ---
-        
-        window.onload = function() {
-            loadPlayersFromStorage(); 
-            
-            // Corrected logic to calculate next Wednesday
-            const dateInput = document.getElementById('sessionDate');
-            const today = new Date();
-            // 3 is Wednesday (0=Sun, 1=Mon, ...)
-            const dayOfWeek = 3;
-            let currentDay = today.getDay();
-            let daysUntilNextWednesday = (dayOfWeek + 7 - currentDay) % 7;
-            
-            // If today is Wednesday, daysUntilNextWednesday is 0, so we want the following Wednesday (add 7 days)
-            if (daysUntilNextWednesday === 0) {
-                 daysUntilNextWednesday = 7;
-            }
-            
-            const nextWednesday = new Date(today);
-            nextWednesday.setDate(today.getDate() + daysUntilNextWednesday);
-            
-            const yyyy = nextWednesday.getFullYear();
-            const mm = String(nextWednesday.getMonth() + 1).padStart(2, '0');
-            const dd = String(nextWednesday.getDate()).padStart(2, '0');
-            dateInput.value = `${yyyy}-${mm}-${dd}`;
-            
-            generateSchedule(); 
-        };
-        // --- JAVASCRIPT LOGIC END ---
-    </script>
-</body>
-</html>
+                     sittingOut.push(...courtMatch.filter(p => p !== undefined
