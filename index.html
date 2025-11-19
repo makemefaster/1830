@@ -105,4 +105,206 @@
 
             // Sort by ability (High -> Low)
             playersToPlay.sort((a, b) => b.ability - a.ability);
-            let availablePlayers = [...playersTo
+            let availablePlayers = [...playersToPlay];
+
+            // Pair up
+            for (let c = 0; c < numCourts; c++) {
+                if (availablePlayers.length < 4) {
+                     sittingOut.push(...availablePlayers);
+                     break;
+                }
+                
+                // Strategy: Strongest + Weakest vs 2nd Strongest + 2nd Weakest
+                let p1 = availablePlayers.shift(); 
+                let p2 = availablePlayers.shift(); 
+                let p3 = availablePlayers.pop();   
+                let p4 = availablePlayers.pop();   
+                
+                // Safety check: if pop() returns undefined (shouldn't happen with correct length check)
+                if (!p1 || !p2 || !p3 || !p4) break;
+
+                // Randomize positions within teams
+                let teamA = shuffleArray([p1, p3]);
+                let teamB = shuffleArray([p2, p4]); 
+                
+                let courtMatch = [...teamA, ...teamB];
+                schedule.push(courtMatch);
+            }
+
+            return { schedule: schedule, sittingOut: sittingOut };
+        }
+
+        // --- LOCAL STORAGE ---
+        function loadPlayersFromStorage() {
+            try {
+                const savedList = localStorage.getItem(STORAGE_KEY);
+                if (savedList) {
+                    document.getElementById('playerList').value = savedList;
+                }
+            } catch (e) {
+                console.warn("Local Storage not available or restricted.");
+            }
+        }
+
+        function savePlayersToStorage(playerListText) {
+            try {
+                localStorage.setItem(STORAGE_KEY, playerListText);
+            } catch (e) {
+                console.warn("Could not save to Local Storage.");
+            }
+        }
+
+        // --- MAIN FUNCTION ---
+        function generateSchedule() {
+            const outputDiv = document.getElementById('scheduleOutput');
+            outputDiv.innerHTML = "Processing..."; // Visual feedback
+
+            try {
+                const playersInputText = document.getElementById('playerList').value;
+                const sessionDate = document.getElementById('sessionDate').value;
+                
+                // Save current list
+                savePlayersToStorage(playersInputText);
+
+                // Parse Courts
+                const courtNames1 = document.getElementById('courtNamesHour1').value.split(',').map(n => n.trim()).filter(n => n !== '');
+                const courtNames2 = document.getElementById('courtNamesHour2').value.split(',').map(n => n.trim()).filter(n => n !== '');
+
+                // Parse Players with Error Handling
+                let players = [];
+                const rawSplit = playersInputText.split(',');
+                
+                for(let i=0; i < rawSplit.length; i += 2) {
+                    if(rawSplit[i+1] !== undefined) {
+                        const name = rawSplit[i].trim();
+                        const abilityStr = rawSplit[i+1].trim();
+                        const ability = parseFloat(abilityStr);
+                        
+                        if (name.length > 0 && !isNaN(ability)) {
+                            players.push({ name: name, ability: ability });
+                        }
+                    }
+                }
+
+                // Validations
+                if (players.length < 4) {
+                    throw new Error("Not enough valid players found. Need at least 4. Check formatting (Name, Ability).");
+                }
+                if (courtNames1.length === 0 || courtNames2.length === 0) {
+                    throw new Error("Please enter court numbers for both hours.");
+                }
+
+                // --- GENERATE HOUR 1 ---
+                let shuffledPlayers = shuffleArray([...players]);
+                let h1Result = scheduleByAbility(shuffledPlayers, courtNames1.length);
+                
+                // --- GENERATE HOUR 2 ---
+                let playingHour1Names = h1Result.schedule.flat().map(p => p.name);
+                let playingHour1 = players.filter(p => playingHour1Names.includes(p.name));
+                let sittingOut1 = h1Result.sittingOut;
+
+                // Prioritize those who sat out, then mix in players from hour 1
+                let hour2Pool = [...sittingOut1, ...shuffleArray(playingHour1)];
+                let h2Result = scheduleByAbility(hour2Pool, courtNames2.length);
+
+                // --- DISPLAY HTML GENERATION ---
+                const createTable = (title, schedule, sitOut, courtNames) => {
+                    let html = `<h3>${title}</h3>`;
+                    if(schedule.length === 0) return html + "<p>Not enough players to form a match.</p>";
+
+                    html += '<table class="schedule-table">';
+                    html += '<tr><th>Court</th><th>Team A</th><th>Team B</th></tr>'; // Simplified header
+                    
+                    schedule.forEach((match, index) => {
+                        const cName = courtNames[index] || `Court ${index+1}`;
+                        // match is [p1, p2, p3, p4]. Team A is 0&1. Team B is 2&3.
+                        html += `<tr class="court-title">
+                            <td>${cName}</td>
+                            <td>${match[0].name} & ${match[1].name}</td>
+                            <td>${match[2].name} & ${match[3].name}</td>
+                        </tr>`;
+                    });
+
+                    if (sitOut.length > 0) {
+                        const sitOutNames = sitOut.map(p => p.name).join(', ');
+                        html += `<tr><td class="sit-out" colspan="3">Sit Out: ${sitOutNames}</td></tr>`;
+                    }
+                    html += '</table>';
+                    return html;
+                };
+
+                let outputHTML = `<h2>Generated Schedule for ${sessionDate}</h2>`;
+                outputHTML += createTable(`Hour 1 (6:30 PM)`, h1Result.schedule, sittingOut1, courtNames1);
+                outputHTML += '<hr>';
+                outputHTML += createTable(`Hour 2 (7:30 PM)`, h2Result.schedule, h2Result.sittingOut, courtNames2);
+
+                outputDiv.innerHTML = outputHTML;
+
+            } catch (err) {
+                outputDiv.innerHTML = `<div class="error-msg"><strong>Error:</strong> ${err.message}</div>`;
+                console.error(err);
+            }
+        }
+
+        function showShareableSchedule() {
+            const outputDiv = document.getElementById('scheduleOutput');
+            const sessionDate = document.getElementById('sessionDate').value;
+            
+            if (!outputDiv.innerHTML || outputDiv.innerText === "Processing...") {
+                alert("Please click 'Generate & Save Roster' first.");
+                return;
+            }
+            
+            const content = outputDiv.innerHTML;
+            const newWin = window.open('', '_blank');
+            newWin.document.write(`
+                <html>
+                <head>
+                    <title>Tennis Schedule - ${sessionDate}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+                        h1, h2, h3 { color: #003366; border-bottom: 2px solid #ddd; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #ddd; }
+                        th { background-color: #003366; color: white; padding: 10px; }
+                        td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+                        .sit-out { background-color: #f0f8ff; color: #003366; font-weight: bold; }
+                        .court-title { font-size: 1.1em; }
+                        @media print { button { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>🎾 Wednesday Night Tennis - ${sessionDate}</h1>
+                    ${content}
+                    <br><button onclick="window.print()">Print / Save PDF</button>
+                </body>
+                </html>
+            `);
+            newWin.document.close();
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            // 1. Load Saved Players (Fail-safe)
+            loadPlayersFromStorage();
+
+            // 2. Set Date to Next Wednesday
+            try {
+                const dateInput = document.getElementById('sessionDate');
+                const today = new Date();
+                const dayOfWeek = 3; // Wednesday
+                let diff = (dayOfWeek + 7 - today.getDay()) % 7;
+                if (diff === 0) diff = 7; // If today is Wed, get next Wed
+                
+                const nextWed = new Date(today);
+                nextWed.setDate(today.getDate() + diff);
+                dateInput.value = nextWed.toISOString().split('T')[0];
+            } catch (e) {
+                console.log("Date auto-set failed, user can set manually.");
+            }
+            
+            // Note: We do NOT auto-generate schedule anymore. 
+            // This prevents crashes on load.
+        };
+    </script>
+</body>
+</html>
