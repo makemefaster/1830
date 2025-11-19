@@ -31,12 +31,16 @@
     <div class="ability-note">**IMPORTANT:** Only players listed here will be scheduled. Remove non-playing members.</div>
     <textarea id="playerList" rows="5">Alex,4, Ben,3, Chloe,5, David,2, Emily,3, Finn,4, Grace,2, Hugo,5, Isaac,3, Jane,4, Karl,2, Leah,3, Mark,5, Nina,4, Owen,2, Pam,3, Quinn,4</textarea>
 
-    <p>Courts Available:</p>
-    <label for="courtsHour1">6:30 PM Courts:</label>
+    <p>Court Details (Number of Courts must match the list length below!):</p>
+    <label for="courtsHour1">6:30 PM Courts (Total):</label>
     <input type="number" id="courtsHour1" value="4" min="1">
+    <p style="margin: 5px 0 5px 0;">**6:30 PM Court Numbers** (e.g., *1, 3, 5, 7*):</p>
+    <textarea id="courtNamesHour1" rows="1">1, 2, 3, 4</textarea>
 
-    <label for="courtsHour2">7:30 PM Courts:</label>
+    <label for="courtsHour2">7:30 PM Courts (Total):</label>
     <input type="number" id="courtsHour2" value="5" min="1">
+    <p style="margin: 5px 0 5px 0;">**7:30 PM Court Numbers** (e.g., *2, 4, 6, 8, 10*):</p>
+    <textarea id="courtNamesHour2" rows="1">5, 6, 7, 8, 9</textarea>
     <br>
 
     <div class="button-group">
@@ -62,7 +66,7 @@
             return array;
         }
 
-        // AMENDMENT 3: Updated matchmaking logic for closer team standard
+        // AMENDMENT 3: Matchmaking logic for closer team standard
         function scheduleByAbility(playerPool, numCourts) {
             let schedule = [];
             let sittingOut = [];
@@ -77,7 +81,6 @@
                 playersToPlay = playerPool;
             }
 
-            // 1. Sort by ability score (highest to lowest)
             playersToPlay.sort((a, b) => b.ability - a.ability);
             let availablePlayers = [...playersToPlay];
 
@@ -86,20 +89,15 @@
                      sittingOut.push(...availablePlayers);
                      break;
                 }
-
-                let courtMatch = [];
                 
-                // Strategy: Pair strongest remaining with 3rd strongest, and 2nd strongest with 4th strongest
-                // P1 (Strongest), P2 (2nd Strongest), P3 (Weakest), P4 (2nd Weakest)
+                let courtMatch = [];
                 
                 let p1 = availablePlayers.shift(); // Strongest
                 let p2 = availablePlayers.shift(); // 2nd Strongest
                 let p3 = availablePlayers.pop();   // Weakest
                 let p4 = availablePlayers.pop();   // 2nd Weakest
                 
-                // Team A = P1 + P3 (Strong + Weak)
-                // Team B = P2 + P4 (Medium-Strong + Medium-Weak)
-                
+                // Team A = P1 + P3 (Strong + Weak); Team B = P2 + P4 (Medium-Strong + Medium-Weak)
                 let teamA = shuffleArray([p1, p3]);
                 let teamB = shuffleArray([p2, p4]); 
                 
@@ -130,12 +128,14 @@
             localStorage.setItem(STORAGE_KEY, playerListText);
         }
 
-        // --- MAIN SCHEDULER FUNCTION ---
+        // --- MAIN SCHEDULER FUNCTION (UPDATED FOR COURT NAMES) ---
 
         function generateSchedule() {
             const playersInputText = document.getElementById('playerList').value;
             const sessionDate = document.getElementById('sessionDate').value;
-            
+            const courtNames1 = document.getElementById('courtNamesHour1').value.split(',').map(n => n.trim());
+            const courtNames2 = document.getElementById('courtNamesHour2').value.split(',').map(n => n.trim());
+
             savePlayersToStorage(playersInputText);
 
             let players = [];
@@ -158,6 +158,12 @@
             const courtsHour1 = parseInt(document.getElementById('courtsHour1').value);
             const courtsHour2 = parseInt(document.getElementById('courtsHour2').value);
 
+            // Validation for court counts
+            if (courtNames1.length !== courtsHour1 || courtNames2.length !== courtsHour2) {
+                 document.getElementById('scheduleOutput').innerHTML = `<p style="color: red;">Error: The number of courts listed in the text boxes must match the total number entered above. Hour 1 expects ${courtsHour1} courts, found ${courtNames1.length}. Hour 2 expects ${courtsHour2} courts, found ${courtNames2.length}.</p>`;
+                 return;
+            }
+
             // Scheduling
             let shuffledPlayers = shuffleArray(players);
             
@@ -170,17 +176,16 @@
             let hour2Pool = [...sittingOut1, ...shuffleArray(playingHour1)];
             let h2Result = scheduleByAbility(hour2Pool, courtsHour2);
 
-            // 4. Display Results
-            // AMENDMENT 2 & 4: Simplified names for manual editing and ensured court numbers are present
-            const createTable = (title, schedule, sitOut) => {
+            // 4. Display Results (Uses custom court names)
+            const createTable = (title, schedule, sitOut, courtNames) => {
                 let tableHTML = `<h3>${title}</h3>`;
                 tableHTML += '<table class="schedule-table">';
                 tableHTML += '<tr><th>Court</th><th>Player 1</th><th>Player 2</th><th>Player 3</th><th>Player 4</th></tr>';
                 
                 schedule.forEach((match, index) => {
-                    // AMENDMENT 2: Display only Name (not Name (Ability)) for cleaner copying
+                    const courtID = courtNames[index] || `Court ${index + 1}`; // Use custom name or default
                     const playerNames = match.map(p => p.name);
-                    tableHTML += `<tr class="court-title"><td>${index + 1}</td><td>${playerNames[0]}</td><td>${playerNames[1]}</td><td>${playerNames[2]}</td><td>${playerNames[3]}</td></tr>`;
+                    tableHTML += `<tr class="court-title"><td>${courtID}</td><td>${playerNames[0]}</td><td>${playerNames[1]}</td><td>${playerNames[2]}</td><td>${playerNames[3]}</td></tr>`;
                 });
 
                 if (sitOut.length > 0) {
@@ -193,14 +198,14 @@
             };
 
             let outputHTML = `<h2>Generated Schedule for ${sessionDate}</h2>`;
-            outputHTML += createTable(`Hour 1 (6:30 PM) - ${courtsHour1} Courts`, h1Result.schedule, sittingOut1);
+            outputHTML += createTable(`Hour 1 (6:30 PM)`, h1Result.schedule, sittingOut1, courtNames1);
             outputHTML += '<hr>';
-            outputHTML += createTable(`Hour 2 (7:30 PM) - ${courtsHour2} Courts`, h2Result.schedule, h2Result.sittingOut);
+            outputHTML += createTable(`Hour 2 (7:30 PM)`, h2Result.schedule, h2Result.sittingOut, courtNames2);
 
             document.getElementById('scheduleOutput').innerHTML = outputHTML;
         }
 
-        // --- SHAREABLE PAGE FUNCTION (AMENDMENT 1 CORRECTED) ---
+        // --- SHAREABLE PAGE FUNCTION (Unchanged CSS) ---
 
         function showShareableSchedule() {
             const outputDiv = document.getElementById('scheduleOutput');
