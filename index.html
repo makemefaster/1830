@@ -33,13 +33,13 @@
 
     <p>Court Details (Number of Courts must match the list length below!):</p>
     
-    <label for="courtsHour1">6:30 PM Courts (Total):</label>
+    <label for="courtsHour1">6:30 PM Courts (Total Available):</label>
     <input type="number" id="courtsHour1" value="4" min="1">
     
     <p style="margin: 5px 0 5px 0;">**6:30 PM Court Numbers** (e.g., *1, 3, 5, 7*):</p>
     <textarea id="courtNamesHour1" rows="1">1, 2, 3, 4</textarea>
 
-    <label for="courtsHour2">7:30 PM Courts (Total):</label>
+    <label for="courtsHour2">7:30 PM Courts (Total Available):</label>
     <input type="number" id="courtsHour2" value="5" min="1">
     
     <p style="margin: 5px 0 5px 0;">**7:30 PM Court Numbers** (e.g., *2, 4, 6, 8, 10*):</p>
@@ -134,53 +134,4 @@
         // --- MAIN SCHEDULER FUNCTION (UPDATED FOR COURT NAMES) ---
 
         function generateSchedule() {
-            const playersInputText = document.getElementById('playerList').value;
-            const sessionDate = document.getElementById('sessionDate').value;
-            const courtNames1 = document.getElementById('courtNamesHour1').value.split(',').map(n => n.trim());
-            const courtNames2 = document.getElementById('courtNamesHour2').value.split(',').map(n => n.trim());
-
-            savePlayersToStorage(playersInputText);
-
-            let players = [];
-            
-            playersInputText.split(',').forEach((item, index, array) => {
-                if (index % 2 === 0 && array[index + 1]) {
-                    const name = item.trim();
-                    const ability = parseFloat(array[index + 1].trim());
-                    if (name.length > 0 && !isNaN(ability)) {
-                        players.push({ name: name, ability: ability });
-                    }
-                }
-            });
-
-            if (players.length === 0) {
-                document.getElementById('scheduleOutput').innerHTML = '<p style="color: red;">Error: Please enter player names and ability scores correctly (e.g., Name,Ability).</p>';
-                return;
-            }
-
-            const courtsHour1 = parseInt(document.getElementById('courtsHour1').value);
-            const courtsHour2 = parseInt(document.getElementById('courtsHour2').value);
-
-            // Validation for court counts
-            if (courtNames1.length !== courtsHour1 || courtNames2.length !== courtsHour2) {
-                 document.getElementById('scheduleOutput').innerHTML = `<p style="color: red;">Error: The number of courts listed in the text boxes must match the total number entered above. Hour 1 expects ${courtsHour1} courts, found ${courtNames1.length}. Hour 2 expects ${courtsHour2} courts, found ${courtNames2.length}.</p>`;
-                 return;
-            }
-
-            // Scheduling
-            let shuffledPlayers = shuffleArray(players);
-            
-            let h1Result = scheduleByAbility(shuffledPlayers, courtsHour1);
-            let sittingOut1 = h1Result.sittingOut;
-            
-            let playingHour1Names = h1Result.schedule.flat().map(p => p.name);
-            let playingHour1 = players.filter(p => playingHour1Names.includes(p.name));
-            
-            let hour2Pool = [...sittingOut1, ...shuffleArray(playingHour1)];
-            let h2Result = scheduleByAbility(hour2Pool, courtsHour2);
-
-            // 4. Display Results (Uses custom court names)
-            const createTable = (title, schedule, sitOut, courtNames) => {
-                let tableHTML = `<h3>${title}</h3>`;
-                tableHTML += '<table class="schedule-table">';
-                tableHTML += '<tr><th>Court</th><th>Player 1</th><th>Player 2</th><th>Player 3</th><th>Player 4</th></tr>';
+            const playersInputText = document.getElementById('
