@@ -27,7 +27,8 @@
         
         textarea { font-family: monospace; }
         
-        .button-row { display: flex; gap: 10px; margin-top: 20px; }
+        /* Button Styles */
+        .button-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         
         button { 
             width: auto; 
@@ -36,13 +37,17 @@
             font-size: 16px;
             border: none;
             padding: 12px 24px;
+            flex: 1; /* Equal width buttons */
         }
         
-        #btnGenerate { background-color: #003366; color: white; }
+        #btnGenerate { background-color: #003366; color: white; } /* Navy */
         #btnGenerate:hover { background-color: #002244; }
         
-        #btnShare { background-color: #4CAF50; color: white; }
+        #btnShare { background-color: #4CAF50; color: white; } /* Green */
         #btnShare:hover { background-color: #45a049; }
+
+        #btnWord { background-color: #2b5797; color: white; } /* Word Blue */
+        #btnWord:hover { background-color: #1e3f6f; }
 
         /* Output Styles */
         .schedule-output { background: white; padding: 20px; margin-top: 20px; border: 1px solid #ddd; display: none; }
@@ -85,15 +90,16 @@
     </div>
 
     <div class="button-row">
-        <button id="btnGenerate" onclick="generateAllSchedules()">Generate Schedule</button>
-        <button id="btnShare" onclick="openShareView()">View Shareable Page</button>
+        <button id="btnGenerate" onclick="generateAllSchedules()">1. Generate Schedule</button>
+        <button id="btnShare" onclick="openShareView()">2. View / Print PDF</button>
+        <button id="btnWord" onclick="downloadWordDoc()">3. Download Word Doc</button>
     </div>
 
     <div id="errorContainer" class="error-box"></div>
     <div id="output" class="schedule-output"></div>
 
     <script>
-        const STORAGE_KEY = 'tennis_staggered_v1';
+        const STORAGE_KEY = 'tennis_staggered_v2';
 
         // --- INITIALIZATION ---
         window.onload = function() {
@@ -146,34 +152,22 @@
 
         // --- SCHEDULING ENGINE ---
         function scheduleGroup(players, courts, timeSlots) {
-            // If no players, return empty result
             if (players.length === 0) return null;
             if (courts.length === 0) throw "No courts defined for a group with players.";
 
             // Hour 1
             let pool1 = shuffle([...players]);
-            // Sort by ability for balanced matches
             pool1.sort((a,b) => b.ability - a.ability);
-            
             const res1 = createMatches(pool1, courts);
             
-            // Hour 2 Logic:
-            // Prioritize sitters from H1, then shuffle players from H1
+            // Hour 2 Logic
             const playedNamesH1 = res1.matches.flat().map(p => p.name);
             const playedObjH1 = players.filter(p => playedNamesH1.includes(p.name));
             const pool2 = [...res1.sitOut, ...shuffle(playedObjH1)];
-            
-            // Sort Hour 2 pool by ability again for balance
             pool2.sort((a,b) => b.ability - a.ability);
-
             const res2 = createMatches(pool2, courts);
 
-            return {
-                time1: timeSlots[0],
-                round1: res1,
-                time2: timeSlots[1],
-                round2: res2
-            };
+            return { time1: timeSlots[0], round1: res1, time2: timeSlots[1], round2: res2 };
         }
 
         function createMatches(pool, courts) {
@@ -192,12 +186,10 @@
                     sitOut.push(...tempPool);
                     break;
                 }
-                // Matchmaking: Strongest/Weakest combos
                 let p1 = tempPool.shift();
                 let p2 = tempPool.shift();
                 let p3 = tempPool.pop();
                 let p4 = tempPool.pop();
-                
                 let teamA = shuffle([p1, p3]);
                 let teamB = shuffle([p2, p4]);
                 matches.push([...teamA, ...teamB]);
@@ -213,41 +205,26 @@
             outBox.style.display = 'none';
             
             try {
-                // 1. Get Inputs
                 const p1Text = document.getElementById('playersG1').value;
                 const c1Text = document.getElementById('courtsG1').value;
                 const p2Text = document.getElementById('playersG2').value;
                 const c2Text = document.getElementById('courtsG2').value;
 
-                // 2. Save
                 const saveData = { p1: p1Text, c1: c1Text, p2: p2Text, c2: c2Text };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
 
-                // 3. Process Group 1
                 const players1 = parsePlayers(p1Text);
                 const courts1 = parseCourts(c1Text);
                 const result1 = scheduleGroup(players1, courts1, ["4:30 PM - 5:30 PM", "5:30 PM - 6:30 PM"]);
 
-                // 4. Process Group 2
                 const players2 = parsePlayers(p2Text);
                 const courts2 = parseCourts(c2Text);
                 const result2 = scheduleGroup(players2, courts2, ["5:30 PM - 6:30 PM", "6:30 PM - 7:30 PM"]);
 
-                // 5. Build HTML
                 let html = "";
-
-                // Render Group 1
-                if (result1) {
-                    html += renderGroupHTML("Group 1 (Early Starters)", result1, courts1);
-                }
-
-                // Spacer
+                if (result1) html += renderGroupHTML("Group 1 (Early Starters)", result1, courts1);
                 if (result1 && result2) html += "<br><hr style='border-top: 3px double #003366;'><br>";
-
-                // Render Group 2
-                if (result2) {
-                    html += renderGroupHTML("Group 2 (Late Starters)", result2, courts2);
-                }
+                if (result2) html += renderGroupHTML("Group 2 (Late Starters)", result2, courts2);
 
                 if (html === "") throw "Please enter players in at least one group.";
 
@@ -262,18 +239,12 @@
 
         function renderGroupHTML(groupTitle, data, courtNames) {
             let html = `<h2>${groupTitle}</h2>`;
-            
-            // Function to build a single table
             const buildTable = (time, roundData) => {
                 let t = `<h3>${time}</h3>`;
                 t += `<table><tr><th>Court</th><th>Team A</th><th>Team B</th></tr>`;
                 roundData.matches.forEach((m, idx) => {
                     let cName = courtNames[idx] || `C${idx+1}`;
-                    t += `<tr>
-                        <td style="font-weight:bold;">${cName}</td>
-                        <td>${m[0].name} & ${m[1].name}</td>
-                        <td>${m[2].name} & ${m[3].name}</td>
-                    </tr>`;
+                    t += `<tr><td style="font-weight:bold;">${cName}</td><td>${m[0].name} & ${m[1].name}</td><td>${m[2].name} & ${m[3].name}</td></tr>`;
                 });
                 if (roundData.sitOut.length > 0) {
                     t += `<tr><td class="sit-out" colspan="3">Sit Out: ${roundData.sitOut.map(p=>p.name).join(', ')}</td></tr>`;
@@ -281,20 +252,17 @@
                 t += `</table>`;
                 return t;
             };
-
             html += buildTable(data.time1, data.round1);
             html += buildTable(data.time2, data.round2);
             return html;
         }
 
+        // --- VIEW SHAREABLE PAGE (PDF) ---
         function openShareView() {
             const outBox = document.getElementById('output');
             const dateStr = document.getElementById('sessionDate').value;
             
-            if (outBox.style.display === 'none') {
-                alert("Generate schedule first.");
-                return;
-            }
+            if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
 
             const win = window.open("", "_blank");
             win.document.write(`
@@ -321,6 +289,45 @@
                 </html>
             `);
             win.document.close();
+        }
+
+        // --- EXPORT TO WORD ---
+        function downloadWordDoc() {
+            const outBox = document.getElementById('output');
+            const dateStr = document.getElementById('sessionDate').value;
+            
+            if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
+
+            // Build a clean HTML document with embedded CSS for Word to interpret
+            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+                         "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+                         "xmlns='http://www.w3.org/TR/REC-html40'>" +
+                         "<head><meta charset='utf-8'><title>Tennis Schedule</title>";
+            
+            // CSS explicitly for Word
+            header += "<style>";
+            header += "body { font-family: Arial, sans-serif; }";
+            header += "h1, h2, h3 { color: #003366; }";
+            header += "h2 { background-color: #003366; color: white; padding: 5px; }";
+            header += "table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }";
+            header += "td, th { border: 1px solid #003366; padding: 8px; text-align: center; }";
+            header += "th { background-color: #003366; color: white; }";
+            header += ".sit-out { background-color: #eef; font-weight: bold; }";
+            header += "</style>";
+            header += "</head><body>";
+            
+            header += "<h1>🎾 Wednesday Schedule - " + dateStr + "</h1>";
+
+            var footer = "</body></html>";
+            var sourceHTML = header + outBox.innerHTML + footer;
+
+            var source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            var fileDownload = document.createElement("a");
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = 'tennis_schedule_' + dateStr + '.doc';
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
         }
     </script>
 </body>
