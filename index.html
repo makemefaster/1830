@@ -6,15 +6,20 @@
     <title>Wednesday Staggered Tennis Schedule</title>
     <style>
         /* Queen's Club Style - Blue & White */
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; color: #333; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; color: #333; }
         h1 { color: #003366; border-bottom: 3px solid #003366; padding-bottom: 10px; }
         h2 { color: #003366; margin-top: 30px; border-bottom: 1px solid #ccc; }
         
         label { font-weight: bold; display: block; margin-top: 15px; color: #003366; }
         .help-text { font-size: 0.85em; color: #666; margin-bottom: 5px; font-style: italic; }
         
+        .container-flex { display: flex; gap: 20px; flex-wrap: wrap; }
+        .col-master { flex: 1; min-width: 300px; border-right: 2px dashed #ccc; padding-right: 20px; }
+        .col-weekly { flex: 2; min-width: 400px; }
+
         .group-container { background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
         .group-header { background-color: #003366; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; }
+        .master-header { background-color: #444; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; }
 
         input, textarea, button { 
             box-sizing: border-box; 
@@ -25,7 +30,7 @@
             font-family: inherit;
         }
         
-        textarea { font-family: monospace; }
+        textarea { font-family: monospace; font-size: 14px; }
         
         /* Button Styles */
         .button-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
@@ -40,14 +45,17 @@
             flex: 1;
         }
         
-        #btnGenerate { background-color: #003366; color: white; } /* Navy */
+        #btnGenerate { background-color: #003366; color: white; } 
         #btnGenerate:hover { background-color: #002244; }
         
-        #btnShare { background-color: #4CAF50; color: white; } /* Green */
+        #btnShare { background-color: #4CAF50; color: white; } 
         #btnShare:hover { background-color: #45a049; }
 
-        #btnWord { background-color: #2b5797; color: white; } /* Word Blue */
+        #btnWord { background-color: #2b5797; color: white; }
         #btnWord:hover { background-color: #1e3f6f; }
+
+        #btnClear { background-color: #d9534f; color: white; flex: 0 0 auto; }
+        #btnClear:hover { background-color: #c9302c; }
 
         /* Output Styles */
         .schedule-output { background: white; padding: 20px; margin-top: 20px; border: 1px solid #ddd; display: none; }
@@ -67,29 +75,21 @@
     <label for="sessionDate">Session Date:</label>
     <input type="date" id="sessionDate">
 
-    <div class="group-container">
-        <div class="group-header">Group 1: Early Starters (4:30 PM - 6:30 PM)</div>
+    <div class="container-flex">
         
-        <label for="playersG1">Players (Name, Ability, Gender):</label>
-        <div class="help-text">One player per line OR comma separated.<br>Format: <strong>Name, Ability, M/W</strong></div>
-        <textarea id="playersG1" rows="10">Alex, 4, M
+        <div class="col-master">
+            <div class="group-container" style="background-color: #f9f9f9;">
+                <div class="master-header">📂 Master Player Bank</div>
+                <div class="help-text">Keep all your regulars here.<br><strong>Copy/Paste</strong> players from here into the groups on the right.</div>
+                <textarea id="masterList" rows="30" placeholder="Alex, 4, M&#10;Ben, 3, M&#10;...">Alex, 4, M
 Ben, 3, M
 Chloe, 5, W
 David, 2, M
 Emily, 3, W
 Finn, 4, M
 Grace, 2, W
-Hugo, 5, M</textarea>
-        
-        <label for="courtsG1">Courts (4:30 & 5:30):</label>
-        <textarea id="courtsG1" rows="1">1, 2</textarea>
-    </div>
-
-    <div class="group-container">
-        <div class="group-header">Group 2: Late Starters (5:30 PM - 7:30 PM)</div>
-        
-        <label for="playersG2">Players (Name, Ability, Gender):</label>
-        <textarea id="playersG2" rows="18">Isaac, 3, M
+Hugo, 5, M
+Isaac, 3, M
 Jane, 4, W
 Karl, 2, M
 Leah, 3, W
@@ -105,9 +105,31 @@ Ursula, 3, W
 Victor, 5, M
 Will, 4, M
 Xena, 3, W</textarea>
-        
-        <label for="courtsG2">Courts (5:30 & 6:30):</label>
-        <textarea id="courtsG2" rows="1">3, 4, 5, 6</textarea>
+                <div class="help-text" style="margin-top:10px;">Format: Name, Rating, M/W</div>
+            </div>
+        </div>
+
+        <div class="col-weekly">
+            <div style="text-align: right; margin-bottom: 10px;">
+                <button id="btnClear" onclick="clearWeeklyInputs()" style="padding: 5px 15px; font-size: 14px;">🗑️ Clear Groups</button>
+            </div>
+
+            <div class="group-container">
+                <div class="group-header">Group 1: Early (4:30 - 6:30)</div>
+                <label>Players Playing This Week:</label>
+                <textarea id="playersG1" rows="6"></textarea>
+                <label>Courts:</label>
+                <textarea id="courtsG1" rows="1">1, 2</textarea>
+            </div>
+
+            <div class="group-container">
+                <div class="group-header">Group 2: Late (5:30 - 7:30)</div>
+                <label>Players Playing This Week:</label>
+                <textarea id="playersG2" rows="10"></textarea>
+                <label>Courts:</label>
+                <textarea id="courtsG2" rows="1">3, 4, 5, 6</textarea>
+            </div>
+        </div>
     </div>
 
     <div class="button-row">
@@ -120,7 +142,7 @@ Xena, 3, W</textarea>
     <div id="output" class="schedule-output"></div>
 
     <script>
-        const STORAGE_KEY = 'tennis_staggered_v4_newlines';
+        const STORAGE_KEY = 'tennis_staggered_v5_master';
 
         // --- INITIALIZATION ---
         window.onload = function() {
@@ -139,6 +161,10 @@ Xena, 3, W</textarea>
                 const saved = localStorage.getItem(STORAGE_KEY);
                 if (saved) {
                     const data = JSON.parse(saved);
+                    // Load Master List
+                    if(data.master) document.getElementById('masterList').value = data.master;
+                    
+                    // Load Weekly inputs (if user closed browser mid-planning)
                     document.getElementById('playersG1').value = data.p1 || "";
                     document.getElementById('courtsG1').value = data.c1 || "";
                     document.getElementById('playersG2').value = data.p2 || "";
@@ -147,31 +173,27 @@ Xena, 3, W</textarea>
             } catch(e) {}
         };
 
-        // --- IMPROVED PARSING (Handles New Lines AND Commas) ---
+        function clearWeeklyInputs() {
+            if(confirm("Are you sure you want to clear the weekly groups? The Master Bank will remain.")) {
+                document.getElementById('playersG1').value = "";
+                document.getElementById('playersG2').value = "";
+            }
+        }
+
+        // --- PARSING ---
         function parsePlayers(text) {
-            // 1. Replace all newlines with commas
-            // 2. Split by comma
-            // 3. Trim whitespace from every item
-            // 4. Filter out empty strings
             const tokens = text.replace(/[\r\n]+/g, ',') 
                                .split(',')
                                .map(t => t.trim())
                                .filter(t => t.length > 0);
 
             const players = [];
-            
-            // Loop through tokens 3 at a time (Name, Ability, Gender)
             for (let i = 0; i < tokens.length; i += 3) {
-                // Ensure we at least have Name and Ability
                 if (tokens[i] && tokens[i+1]) {
                     const name = tokens[i];
                     const ability = parseFloat(tokens[i+1]);
-                    
-                    // Check 3rd token for Gender, default to 'U' if missing or if end of list
                     let gender = 'U';
-                    if (tokens[i+2]) {
-                        gender = tokens[i+2].toUpperCase();
-                    }
+                    if (tokens[i+2]) gender = tokens[i+2].toUpperCase();
 
                     if (name && !isNaN(ability)) {
                         players.push({ name, ability, gender });
@@ -182,10 +204,7 @@ Xena, 3, W</textarea>
         }
 
         function parseCourts(text) {
-            return text.replace(/[\r\n]+/g, ',')
-                       .split(',')
-                       .map(c => c.trim())
-                       .filter(c => c.length > 0);
+            return text.replace(/[\r\n]+/g, ',').split(',').map(c => c.trim()).filter(c => c.length > 0);
         }
 
         function shuffle(array) {
@@ -193,7 +212,6 @@ Xena, 3, W</textarea>
         }
 
         // --- SCHEDULING ENGINE ---
-        
         function getPairKey(p1, p2) {
             return [p1.name, p2.name].sort().join('|');
         }
@@ -202,10 +220,9 @@ Xena, 3, W</textarea>
             if (players.length === 0) return null;
             if (courts.length === 0) throw "No courts defined for a group with players.";
 
-            // --- HOUR 1 ---
+            // Hour 1
             let pool1 = shuffle([...players]);
             pool1.sort((a,b) => b.ability - a.ability); 
-            
             const res1 = createMatches(pool1, courts, new Set());
             
             const history = new Set();
@@ -214,30 +231,22 @@ Xena, 3, W</textarea>
                 history.add(getPairKey(m[2], m[3]));
             });
 
-            // --- HOUR 2 ---
+            // Hour 2
             const playedNamesH1 = res1.matches.flat().map(p => p.name);
             const playedObjH1 = players.filter(p => playedNamesH1.includes(p.name));
             const pool2 = [...res1.sitOut, ...shuffle(playedObjH1)];
-            
             pool2.sort((a,b) => b.ability - a.ability);
-
             const res2 = createMatches(pool2, courts, history);
 
-            return {
-                time1: timeSlots[0],
-                round1: res1,
-                time2: timeSlots[1],
-                round2: res2
-            };
+            return { time1: timeSlots[0], round1: res1, time2: timeSlots[1], round2: res2 };
         }
 
         function createMatches(pool, courts, partnerHistory) {
             const matches = [];
             const sitOut = [];
-            const maxPlay = courts.length * 4;
             
-            const playingPool = pool.slice(0, maxPlay);
-            const sittingPool = pool.slice(maxPlay);
+            const playingPool = pool.slice(0, courts.length * 4);
+            const sittingPool = pool.slice(courts.length * 4);
             sitOut.push(...sittingPool);
 
             let tempPool = [...playingPool];
@@ -254,7 +263,6 @@ Xena, 3, W</textarea>
                 let p4 = tempPool.shift();
                 
                 const courtPlayers = [p1, p2, p3, p4];
-
                 const combos = [
                     [[0,1], [2,3]],
                     [[0,2], [1,3]],
@@ -271,31 +279,23 @@ Xena, 3, W</textarea>
                     const t2b = courtPlayers[combo[1][1]];
 
                     let score = 0;
-
-                    // 1. History Check
                     if (partnerHistory.has(getPairKey(t1a, t1b))) score -= 5000;
                     if (partnerHistory.has(getPairKey(t2a, t2b))) score -= 5000;
 
-                    // 2. Mixed Doubles Check
                     const t1Mixed = (t1a.gender !== t1b.gender && t1a.gender !== 'U' && t1b.gender !== 'U');
                     const t2Mixed = (t2a.gender !== t2b.gender && t2a.gender !== 'U' && t2b.gender !== 'U');
-
                     if (t1Mixed && t2Mixed) score += 100; 
                     else if (t1Mixed || t2Mixed) score += 20;
 
-                    // 3. Ability Balance
                     const t1Sum = t1a.ability + t1b.ability;
                     const t2Sum = t2a.ability + t2b.ability;
-                    const diff = Math.abs(t1Sum - t2Sum);
-                    
-                    score -= (diff * 5); 
+                    score -= (Math.abs(t1Sum - t2Sum) * 5); 
 
                     if (score > bestScore) {
                         bestScore = score;
                         bestCombo = [t1a, t1b, t2a, t2b];
                     }
                 });
-
                 matches.push(bestCombo);
             }
             return { matches, sitOut };
@@ -309,12 +309,14 @@ Xena, 3, W</textarea>
             outBox.style.display = 'none';
             
             try {
+                const master = document.getElementById('masterList').value;
                 const p1Text = document.getElementById('playersG1').value;
                 const c1Text = document.getElementById('courtsG1').value;
                 const p2Text = document.getElementById('playersG2').value;
                 const c2Text = document.getElementById('courtsG2').value;
 
-                const saveData = { p1: p1Text, c1: c1Text, p2: p2Text, c2: c2Text };
+                // SAVE EVERYTHING
+                const saveData = { master: master, p1: p1Text, c1: c1Text, p2: p2Text, c2: c2Text };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
 
                 const players1 = parsePlayers(p1Text);
@@ -330,7 +332,7 @@ Xena, 3, W</textarea>
                 if (result1 && result2) html += "<br><hr style='border-top: 3px double #003366;'><br>";
                 if (result2) html += renderGroupHTML("Group 2 (Late Starters)", result2, courts2);
 
-                if (html === "") throw "Please enter valid players (Name, Ability, Gender) in at least one group.";
+                if (html === "") throw "Please copy players from the Master Bank into Group 1 or Group 2.";
 
                 outBox.innerHTML = html;
                 outBox.style.display = 'block';
@@ -361,68 +363,30 @@ Xena, 3, W</textarea>
             return html;
         }
 
-        // --- VIEW SHAREABLE PAGE (PDF) ---
         function openShareView() {
             const outBox = document.getElementById('output');
             const dateStr = document.getElementById('sessionDate').value;
-            
             if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
-
             const win = window.open("", "_blank");
             win.document.write(`
-                <html>
-                <head>
-                    <title>Schedule ${dateStr}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; color: #333; text-align: center; }
-                        h1 { color: #003366; }
-                        h2 { background-color: #003366; color: white; padding: 5px; margin-top: 30px; border-radius: 4px; }
-                        h3 { color: #003366; margin-bottom: 5px; margin-top: 15px; }
-                        table { width: 100%; max-width: 800px; margin: 0 auto; border-collapse: collapse; border: 2px solid #003366; }
-                        th { background-color: #003366; color: white; padding: 8px; }
-                        td { border: 1px solid #ccc; padding: 8px; }
-                        .sit-out { background-color: #eef; font-weight: bold; }
-                        @media print { button { display: none; } }
-                    </style>
-                </head>
-                <body>
-                    <h1>🎾 Schedule - ${dateStr}</h1>
-                    ${outBox.innerHTML}
-                    <br><button onclick="window.print()">Print / PDF</button>
-                </body>
-                </html>
+                <html><head><title>Schedule ${dateStr}</title>
+                <style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; text-align: center; }
+                h1 { color: #003366; } h2 { background-color: #003366; color: white; padding: 5px; margin-top: 30px; border-radius: 4px; }
+                h3 { color: #003366; margin-bottom: 5px; margin-top: 15px; }
+                table { width: 100%; max-width: 800px; margin: 0 auto; border-collapse: collapse; border: 2px solid #003366; }
+                th { background-color: #003366; color: white; padding: 8px; } td { border: 1px solid #ccc; padding: 8px; }
+                .sit-out { background-color: #eef; font-weight: bold; } @media print { button { display: none; } }</style>
+                </head><body><h1>🎾 Schedule - ${dateStr}</h1>${outBox.innerHTML}<br><button onclick="window.print()">Print / PDF</button></body></html>
             `);
             win.document.close();
         }
 
-        // --- EXPORT TO WORD ---
         function downloadWordDoc() {
             const outBox = document.getElementById('output');
             const dateStr = document.getElementById('sessionDate').value;
-            
             if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
-
-            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
-                         "xmlns:w='urn:schemas-microsoft-com:office:word' " +
-                         "xmlns='http://www.w3.org/TR/REC-html40'>" +
-                         "<head><meta charset='utf-8'><title>Tennis Schedule</title>";
-            
-            header += "<style>";
-            header += "body { font-family: Arial, sans-serif; }";
-            header += "h1, h2, h3 { color: #003366; }";
-            header += "h2 { background-color: #003366; color: white; padding: 5px; }";
-            header += "table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }";
-            header += "td, th { border: 1px solid #003366; padding: 8px; text-align: center; }";
-            header += "th { background-color: #003366; color: white; }";
-            header += ".sit-out { background-color: #eef; font-weight: bold; }";
-            header += "</style>";
-            header += "</head><body>";
-            
-            header += "<h1>🎾 Wednesday Schedule - " + dateStr + "</h1>";
-
-            var footer = "</body></html>";
-            var sourceHTML = header + outBox.innerHTML + footer;
-
+            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Tennis Schedule</title><style>body { font-family: Arial, sans-serif; } h1, h2, h3 { color: #003366; } h2 { background-color: #003366; color: white; padding: 5px; } table { border-collapse: collapse; width: 100%; margin-bottom: 20px; } td, th { border: 1px solid #003366; padding: 8px; text-align: center; } th { background-color: #003366; color: white; } .sit-out { background-color: #eef; font-weight: bold; }</style></head><body><h1>🎾 Wednesday Schedule - " + dateStr + "</h1>";
+            var sourceHTML = header + outBox.innerHTML + "</body></html>";
             var source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
             var fileDownload = document.createElement("a");
             document.body.appendChild(fileDownload);
