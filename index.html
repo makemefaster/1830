@@ -71,8 +71,15 @@
         <div class="group-header">Group 1: Early Starters (4:30 PM - 6:30 PM)</div>
         
         <label for="playersG1">Players (Name, Ability, Gender):</label>
-        <div class="help-text">Format: Name, Ability, M/W (e.g., Alex, 4, M)</div>
-        <textarea id="playersG1" rows="4">Alex,4,M, Ben,3,M, Chloe,5,W, David,2,M, Emily,3,W, Finn,4,M, Grace,2,W, Hugo,5,M</textarea>
+        <div class="help-text">One player per line OR comma separated.<br>Format: <strong>Name, Ability, M/W</strong></div>
+        <textarea id="playersG1" rows="10">Alex, 4, M
+Ben, 3, M
+Chloe, 5, W
+David, 2, M
+Emily, 3, W
+Finn, 4, M
+Grace, 2, W
+Hugo, 5, M</textarea>
         
         <label for="courtsG1">Courts (4:30 & 5:30):</label>
         <textarea id="courtsG1" rows="1">1, 2</textarea>
@@ -82,7 +89,22 @@
         <div class="group-header">Group 2: Late Starters (5:30 PM - 7:30 PM)</div>
         
         <label for="playersG2">Players (Name, Ability, Gender):</label>
-        <textarea id="playersG2" rows="6">Isaac,3,M, Jane,4,W, Karl,2,M, Leah,3,W, Mark,5,M, Nina,4,W, Owen,2,M, Pam,3,W, Quinn,4,M, Rob,3,M, Steve,4,M, Tim,2,M, Ursula,3,W, Victor,5,M, Will,4,M, Xena,3,W</textarea>
+        <textarea id="playersG2" rows="18">Isaac, 3, M
+Jane, 4, W
+Karl, 2, M
+Leah, 3, W
+Mark, 5, M
+Nina, 4, W
+Owen, 2, M
+Pam, 3, W
+Quinn, 4, M
+Rob, 3, M
+Steve, 4, M
+Tim, 2, M
+Ursula, 3, W
+Victor, 5, M
+Will, 4, M
+Xena, 3, W</textarea>
         
         <label for="courtsG2">Courts (5:30 & 6:30):</label>
         <textarea id="courtsG2" rows="1">3, 4, 5, 6</textarea>
@@ -98,7 +120,7 @@
     <div id="output" class="schedule-output"></div>
 
     <script>
-        const STORAGE_KEY = 'tennis_staggered_v3';
+        const STORAGE_KEY = 'tennis_staggered_v4_newlines';
 
         // --- INITIALIZATION ---
         window.onload = function() {
@@ -125,19 +147,30 @@
             } catch(e) {}
         };
 
-        // --- PARSING (Now handles 3 values) ---
+        // --- IMPROVED PARSING (Handles New Lines AND Commas) ---
         function parsePlayers(text) {
-            const rawItems = text.split(',');
+            // 1. Replace all newlines with commas
+            // 2. Split by comma
+            // 3. Trim whitespace from every item
+            // 4. Filter out empty strings
+            const tokens = text.replace(/[\r\n]+/g, ',') 
+                               .split(',')
+                               .map(t => t.trim())
+                               .filter(t => t.length > 0);
+
             const players = [];
-            // We step by 3 now (Name, Ability, Gender)
-            for (let i = 0; i < rawItems.length; i += 3) {
-                if (rawItems[i] && rawItems[i+1]) {
-                    const name = rawItems[i].trim();
-                    const ability = parseFloat(rawItems[i+1].trim());
-                    // Default to 'U' (Unknown) if 3rd value missing
-                    let gender = 'U'; 
-                    if(rawItems[i+2]) {
-                        gender = rawItems[i+2].trim().toUpperCase();
+            
+            // Loop through tokens 3 at a time (Name, Ability, Gender)
+            for (let i = 0; i < tokens.length; i += 3) {
+                // Ensure we at least have Name and Ability
+                if (tokens[i] && tokens[i+1]) {
+                    const name = tokens[i];
+                    const ability = parseFloat(tokens[i+1]);
+                    
+                    // Check 3rd token for Gender, default to 'U' if missing or if end of list
+                    let gender = 'U';
+                    if (tokens[i+2]) {
+                        gender = tokens[i+2].toUpperCase();
                     }
 
                     if (name && !isNaN(ability)) {
@@ -149,7 +182,10 @@
         }
 
         function parseCourts(text) {
-            return text.split(',').map(c => c.trim()).filter(c => c.length > 0);
+            return text.replace(/[\r\n]+/g, ',')
+                       .split(',')
+                       .map(c => c.trim())
+                       .filter(c => c.length > 0);
         }
 
         function shuffle(array) {
@@ -158,7 +194,6 @@
 
         // --- SCHEDULING ENGINE ---
         
-        // Helper to create a unique key for a pair of players to track history
         function getPairKey(p1, p2) {
             return [p1.name, p2.name].sort().join('|');
         }
@@ -169,28 +204,23 @@
 
             // --- HOUR 1 ---
             let pool1 = shuffle([...players]);
-            pool1.sort((a,b) => b.ability - a.ability); // Sort high to low
+            pool1.sort((a,b) => b.ability - a.ability); 
             
-            // Create H1 matches (No history to check yet)
             const res1 = createMatches(pool1, courts, new Set());
             
-            // Record History from H1
             const history = new Set();
             res1.matches.forEach(m => {
-                // m is [p1, p2, p3, p4] -> Team A is p1+p2, Team B is p3+p4
                 history.add(getPairKey(m[0], m[1]));
                 history.add(getPairKey(m[2], m[3]));
             });
 
             // --- HOUR 2 ---
-            // Pool: Sitters from H1 + Shuffled Players from H1
             const playedNamesH1 = res1.matches.flat().map(p => p.name);
             const playedObjH1 = players.filter(p => playedNamesH1.includes(p.name));
             const pool2 = [...res1.sitOut, ...shuffle(playedObjH1)];
             
             pool2.sort((a,b) => b.ability - a.ability);
 
-            // Create H2 matches, passing in history to avoid repeats
             const res2 = createMatches(pool2, courts, history);
 
             return {
@@ -201,7 +231,6 @@
             };
         }
 
-        // THE SMART MATCHER
         function createMatches(pool, courts, partnerHistory) {
             const matches = [];
             const sitOut = [];
@@ -219,19 +248,13 @@
                     break;
                 }
                 
-                // Take the next 4 players (High ability to Low ability)
-                // This ensures the court standard is somewhat consistent
                 let p1 = tempPool.shift();
                 let p2 = tempPool.shift();
-                let p3 = tempPool.shift(); // shift instead of pop to keep ability group tight
+                let p3 = tempPool.shift(); 
                 let p4 = tempPool.shift();
                 
                 const courtPlayers = [p1, p2, p3, p4];
 
-                // Generate all 3 possible pairing combinations for these 4 players
-                // Option 1: (0,1) v (2,3)
-                // Option 2: (0,2) v (1,3)
-                // Option 3: (0,3) v (1,2)
                 const combos = [
                     [[0,1], [2,3]],
                     [[0,2], [1,3]],
@@ -241,7 +264,6 @@
                 let bestScore = -9999;
                 let bestCombo = null;
 
-                // Evaluate which combination is best
                 combos.forEach(combo => {
                     const t1a = courtPlayers[combo[0][0]];
                     const t1b = courtPlayers[combo[0][1]];
@@ -250,30 +272,22 @@
 
                     let score = 0;
 
-                    // 1. CHECK PARTNER HISTORY (Switching Partners)
-                    // If this pair played together before, massive penalty
+                    // 1. History Check
                     if (partnerHistory.has(getPairKey(t1a, t1b))) score -= 5000;
                     if (partnerHistory.has(getPairKey(t2a, t2b))) score -= 5000;
 
-                    // 2. CHECK MIXED DOUBLES (M+W)
-                    // Check Team 1
+                    // 2. Mixed Doubles Check
                     const t1Mixed = (t1a.gender !== t1b.gender && t1a.gender !== 'U' && t1b.gender !== 'U');
-                    // Check Team 2
                     const t2Mixed = (t2a.gender !== t2b.gender && t2a.gender !== 'U' && t2b.gender !== 'U');
 
-                    if (t1Mixed && t2Mixed) {
-                        score += 100; // Jackpot! Both mixed.
-                    } else if (t1Mixed || t2Mixed) {
-                        score += 20; // One mixed is better than none
-                    }
+                    if (t1Mixed && t2Mixed) score += 100; 
+                    else if (t1Mixed || t2Mixed) score += 20;
 
-                    // 3. ABILITY BALANCE
-                    // We want Team 1 Total Ability ≈ Team 2 Total Ability
+                    // 3. Ability Balance
                     const t1Sum = t1a.ability + t1b.ability;
                     const t2Sum = t2a.ability + t2b.ability;
                     const diff = Math.abs(t1Sum - t2Sum);
                     
-                    // Subtract diff (lower diff is better)
                     score -= (diff * 5); 
 
                     if (score > bestScore) {
