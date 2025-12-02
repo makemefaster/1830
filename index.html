@@ -1,428 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wednesday Staggered Tennis Schedule</title>
-    <style>
-        /* Queen's Club Style - Blue & White */
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; color: #333; }
-        h1 { color: #003366; border-bottom: 3px solid #003366; padding-bottom: 10px; }
-        h2 { color: #003366; margin-top: 30px; border-bottom: 1px solid #ccc; }
-        
-        label { font-weight: bold; display: block; margin-top: 15px; color: #003366; }
-        .help-text { font-size: 0.85em; color: #666; margin-bottom: 5px; font-style: italic; }
-        
-        .container-flex { display: flex; gap: 20px; flex-wrap: wrap; }
-        .col-master { flex: 1; min-width: 300px; border-right: 2px dashed #ccc; padding-right: 20px; }
-        .col-weekly { flex: 2; min-width: 400px; }
-
-        .group-container { background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
-        .group-header { background-color: #003366; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; }
-        .master-header { background-color: #444; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; }
-
-        input, textarea, button { 
-            box-sizing: border-box; 
-            width: 100%; 
-            padding: 10px; 
-            border-radius: 4px; 
-            border: 1px solid #ccc; 
-            font-family: inherit;
-        }
-        
-        textarea { font-family: monospace; font-size: 14px; }
-        
-        /* Button Styles */
-        .button-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-        
-        button { 
-            width: auto; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 16px;
-            border: none;
-            padding: 12px 24px;
-            flex: 1;
-        }
-        
-        #btnGenerate { background-color: #003366; color: white; } 
-        #btnGenerate:hover { background-color: #002244; }
-        
-        #btnShare { background-color: #4CAF50; color: white; } 
-        #btnShare:hover { background-color: #45a049; }
-
-        #btnWord { background-color: #2b5797; color: white; }
-        #btnWord:hover { background-color: #1e3f6f; }
-
-        #btnClear { background-color: #d9534f; color: white; flex: 0 0 auto; }
-        #btnClear:hover { background-color: #c9302c; }
-
-        /* Output Styles */
-        .schedule-output { background: white; padding: 20px; margin-top: 20px; border: 1px solid #ddd; display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #003366; font-size: 0.9em; }
-        th { background-color: #003366; color: white; padding: 8px; text-align: center; }
-        td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .sit-out { background-color: #eef; color: #003366; font-weight: bold; }
-        
-        .error-box { background-color: #ffe6e6; color: #d8000c; padding: 10px; border: 1px solid #d8000c; margin-top: 20px; display: none; }
-    </style>
-</head>
-<body>
-
-    <h1>🎾 Wednesday Staggered Schedule</h1>
-
-    <label for="sessionDate">Session Date:</label>
-    <input type="date" id="sessionDate">
-
-    <div class="container-flex">
-        
-        <div class="col-master">
-            <div class="group-container" style="background-color: #f9f9f9;">
-                <div class="master-header">📂 Master Player Bank</div>
-                <div class="help-text">Keep all your regulars here.<br><strong>Copy/Paste</strong> players from here into the groups on the right.</div>
-                <textarea id="masterList" rows="30" placeholder="Alex, 4, M&#10;Ben, 3, M&#10;...">Steffi ,3,F
-philip watson,3,M
-Bridgett Walters,5,F
-Daniel Hazan,2,M
-Russell Duckworth,2,M
-Amir Lari,3,M
-Gaby D'N,4,F
-Richard Prosser,2,M
-Nigel Gurkin,2,M
-Philippe ,3,M
-Jennifer Hall,3,F
-Gwenyth Davis,3,F
-Christina ,2,F
-Jamie Hall,2,M
-Donna ,2,F
-Heather Mott,3,F
-Kate Rowe,3,F
-Kate Bucknell Maguire,2,F
-Fred Satow,2,M
-Jane Asscher,3,F
-Michael McKinnon,5,M
-Fen Aird,3,F
-Raj Persaud,3,M
-Rick Hanreck,3,M
-Benedetta,3,F
-charlotte,3,F
-Jurate Hardy,1,F
-John Yorke,2,M
-Philip Wilkinson ,2,M
-max casini,2,M
-Mr Rupert Merton,2,M
-Denys Firth,2,M
-David Henderson-Williams,2,M
 Alexandra Stopps,3,F
-Jane Ylvisaker,4,F
-Mark Cook,2,M
+Amir Lari,3,M
+Anna Allen-Jones,2,F
+Benedetta,3,F
+Bridgett Walters,5,F
+charlotte,3,F
+Christina ,2,F
+Daniel Hazan,2,M
 David Drayson,2,M
-Martyn Robertson,4,M
-Minnie Badenoch,4,F
-Kevin Ivie,2,M
-Tom Lissauer,3,M
-John Evangelides ,3,M
-Galia ,3,F
-Robin Priest,4,M
-Liz Agha ,2,F
-Olga Selivanova,2,F
-Miguel Caparros,3,M
+David Henderson-Williams,2,M
+Denys Firth,2,M
+Donna ,2,F
 eric r wilkinson,2,M
-Toby Martin ,1,M
+Fen Aird,3,F
+Fred Satow,2,M
+Gaby D'N,4,F
+Galia ,3,F
+Gwenyth Davis,3,F
+Heather Mott,3,F
+Jamie Hall,2,M
+Jane Asscher,3,F
+Jane Ylvisaker,4,F
+Jennifer Hall,3,F
+John Evangelides ,3,M
+John Yorke,2,M
+Jurate Hardy,1,F
+Kate Bucknell Maguire,2,F
+Kate Rowe,3,F
+Kevin Ivie,2,M
+Liz Agha ,2,F
+Mark Cook,2,M
+Martyn Robertson,4,M
+max casini,2,M
+Michael McKinnon,5,M
 michael stone,2,M
-Anna Allen-Jones,2,F</textarea>
-                <div class="help-text" style="margin-top:10px;">Format: Name, Rating, M/W</div>
-            </div>
-        </div>
-
-        <div class="col-weekly">
-            <div style="text-align: right; margin-bottom: 10px;">
-                <button id="btnClear" onclick="clearWeeklyInputs()" style="padding: 5px 15px; font-size: 14px;">🗑️ Clear Groups</button>
-            </div>
-
-            <div class="group-container">
-                <div class="group-header">Group 1: Early (4:30 - 6:30)</div>
-                <label>Players Playing This Week:</label>
-                <textarea id="playersG1" rows="6"></textarea>
-                <label>Courts:</label>
-                <textarea id="courtsG1" rows="1">1, 2</textarea>
-            </div>
-
-            <div class="group-container">
-                <div class="group-header">Group 2: Late (5:30 - 7:30)</div>
-                <label>Players Playing This Week:</label>
-                <textarea id="playersG2" rows="10"></textarea>
-                <label>Courts:</label>
-                <textarea id="courtsG2" rows="1">3, 4, 5, 6</textarea>
-            </div>
-        </div>
-    </div>
-
-    <div class="button-row">
-        <button id="btnGenerate" onclick="generateAllSchedules()">1. Generate Schedule</button>
-        <button id="btnShare" onclick="openShareView()">2. View / Print PDF</button>
-        <button id="btnWord" onclick="downloadWordDoc()">3. Download Word Doc</button>
-    </div>
-
-    <div id="errorContainer" class="error-box"></div>
-    <div id="output" class="schedule-output"></div>
-
-    <script>
-        const STORAGE_KEY = 'tennis_staggered_v5_master';
-
-        // --- INITIALIZATION ---
-        window.onload = function() {
-            try {
-                const dateInput = document.getElementById('sessionDate');
-                const today = new Date();
-                const dayOfWeek = 3; 
-                let diff = (dayOfWeek + 7 - today.getDay()) % 7;
-                if (diff === 0) diff = 7; 
-                const nextWed = new Date(today);
-                nextWed.setDate(today.getDate() + diff);
-                dateInput.value = nextWed.toISOString().split('T')[0];
-            } catch(e) {}
-
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    // Load Master List
-                    if(data.master) document.getElementById('masterList').value = data.master;
-                    
-                    // Load Weekly inputs (if user closed browser mid-planning)
-                    document.getElementById('playersG1').value = data.p1 || "";
-                    document.getElementById('courtsG1').value = data.c1 || "";
-                    document.getElementById('playersG2').value = data.p2 || "";
-                    document.getElementById('courtsG2').value = data.c2 || "";
-                }
-            } catch(e) {}
-        };
-
-        function clearWeeklyInputs() {
-            if(confirm("Are you sure you want to clear the weekly groups? The Master Bank will remain.")) {
-                document.getElementById('playersG1').value = "";
-                document.getElementById('playersG2').value = "";
-            }
-        }
-
-        // --- PARSING ---
-        function parsePlayers(text) {
-            const tokens = text.replace(/[\r\n]+/g, ',') 
-                               .split(',')
-                               .map(t => t.trim())
-                               .filter(t => t.length > 0);
-
-            const players = [];
-            for (let i = 0; i < tokens.length; i += 3) {
-                if (tokens[i] && tokens[i+1]) {
-                    const name = tokens[i];
-                    const ability = parseFloat(tokens[i+1]);
-                    let gender = 'U';
-                    if (tokens[i+2]) gender = tokens[i+2].toUpperCase();
-
-                    if (name && !isNaN(ability)) {
-                        players.push({ name, ability, gender });
-                    }
-                }
-            }
-            return players;
-        }
-
-        function parseCourts(text) {
-            return text.replace(/[\r\n]+/g, ',').split(',').map(c => c.trim()).filter(c => c.length > 0);
-        }
-
-        function shuffle(array) {
-            return array.sort(() => Math.random() - 0.5);
-        }
-
-        // --- SCHEDULING ENGINE ---
-        function getPairKey(p1, p2) {
-            return [p1.name, p2.name].sort().join('|');
-        }
-
-        function scheduleGroup(players, courts, timeSlots) {
-            if (players.length === 0) return null;
-            if (courts.length === 0) throw "No courts defined for a group with players.";
-
-            // Hour 1
-            let pool1 = shuffle([...players]);
-            pool1.sort((a,b) => b.ability - a.ability); 
-            const res1 = createMatches(pool1, courts, new Set());
-            
-            const history = new Set();
-            res1.matches.forEach(m => {
-                history.add(getPairKey(m[0], m[1]));
-                history.add(getPairKey(m[2], m[3]));
-            });
-
-            // Hour 2
-            const playedNamesH1 = res1.matches.flat().map(p => p.name);
-            const playedObjH1 = players.filter(p => playedNamesH1.includes(p.name));
-            const pool2 = [...res1.sitOut, ...shuffle(playedObjH1)];
-            pool2.sort((a,b) => b.ability - a.ability);
-            const res2 = createMatches(pool2, courts, history);
-
-            return { time1: timeSlots[0], round1: res1, time2: timeSlots[1], round2: res2 };
-        }
-
-        function createMatches(pool, courts, partnerHistory) {
-            const matches = [];
-            const sitOut = [];
-            
-            const playingPool = pool.slice(0, courts.length * 4);
-            const sittingPool = pool.slice(courts.length * 4);
-            sitOut.push(...sittingPool);
-
-            let tempPool = [...playingPool];
-
-            for(let i=0; i<courts.length; i++) {
-                if(tempPool.length < 4) {
-                    sitOut.push(...tempPool);
-                    break;
-                }
-                
-                let p1 = tempPool.shift();
-                let p2 = tempPool.shift();
-                let p3 = tempPool.shift(); 
-                let p4 = tempPool.shift();
-                
-                const courtPlayers = [p1, p2, p3, p4];
-                const combos = [
-                    [[0,1], [2,3]],
-                    [[0,2], [1,3]],
-                    [[0,3], [1,2]]
-                ];
-
-                let bestScore = -9999;
-                let bestCombo = null;
-
-                combos.forEach(combo => {
-                    const t1a = courtPlayers[combo[0][0]];
-                    const t1b = courtPlayers[combo[0][1]];
-                    const t2a = courtPlayers[combo[1][0]];
-                    const t2b = courtPlayers[combo[1][1]];
-
-                    let score = 0;
-                    if (partnerHistory.has(getPairKey(t1a, t1b))) score -= 5000;
-                    if (partnerHistory.has(getPairKey(t2a, t2b))) score -= 5000;
-
-                    const t1Mixed = (t1a.gender !== t1b.gender && t1a.gender !== 'U' && t1b.gender !== 'U');
-                    const t2Mixed = (t2a.gender !== t2b.gender && t2a.gender !== 'U' && t2b.gender !== 'U');
-                    if (t1Mixed && t2Mixed) score += 100; 
-                    else if (t1Mixed || t2Mixed) score += 20;
-
-                    const t1Sum = t1a.ability + t1b.ability;
-                    const t2Sum = t2a.ability + t2b.ability;
-                    score -= (Math.abs(t1Sum - t2Sum) * 5); 
-
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestCombo = [t1a, t1b, t2a, t2b];
-                    }
-                });
-                matches.push(bestCombo);
-            }
-            return { matches, sitOut };
-        }
-
-        // --- MAIN GENERATE ---
-        function generateAllSchedules() {
-            const errBox = document.getElementById('errorContainer');
-            const outBox = document.getElementById('output');
-            errBox.style.display = 'none';
-            outBox.style.display = 'none';
-            
-            try {
-                const master = document.getElementById('masterList').value;
-                const p1Text = document.getElementById('playersG1').value;
-                const c1Text = document.getElementById('courtsG1').value;
-                const p2Text = document.getElementById('playersG2').value;
-                const c2Text = document.getElementById('courtsG2').value;
-
-                // SAVE EVERYTHING
-                const saveData = { master: master, p1: p1Text, c1: c1Text, p2: p2Text, c2: c2Text };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
-
-                const players1 = parsePlayers(p1Text);
-                const courts1 = parseCourts(c1Text);
-                const result1 = scheduleGroup(players1, courts1, ["4:30 PM - 5:30 PM", "5:30 PM - 6:30 PM"]);
-
-                const players2 = parsePlayers(p2Text);
-                const courts2 = parseCourts(c2Text);
-                const result2 = scheduleGroup(players2, courts2, ["5:30 PM - 6:30 PM", "6:30 PM - 7:30 PM"]);
-
-                let html = "";
-                if (result1) html += renderGroupHTML("Group 1 (Early Starters)", result1, courts1);
-                if (result1 && result2) html += "<br><hr style='border-top: 3px double #003366;'><br>";
-                if (result2) html += renderGroupHTML("Group 2 (Late Starters)", result2, courts2);
-
-                if (html === "") throw "Please copy players from the Master Bank into Group 1 or Group 2.";
-
-                outBox.innerHTML = html;
-                outBox.style.display = 'block';
-
-            } catch(err) {
-                errBox.innerText = err;
-                errBox.style.display = 'block';
-            }
-        }
-
-        function renderGroupHTML(groupTitle, data, courtNames) {
-            let html = `<h2>${groupTitle}</h2>`;
-            const buildTable = (time, roundData) => {
-                let t = `<h3>${time}</h3>`;
-                t += `<table><tr><th>Court</th><th>Team A</th><th>Team B</th></tr>`;
-                roundData.matches.forEach((m, idx) => {
-                    let cName = courtNames[idx] || `C${idx+1}`;
-                    t += `<tr><td style="font-weight:bold;">${cName}</td><td>${m[0].name} & ${m[1].name}</td><td>${m[2].name} & ${m[3].name}</td></tr>`;
-                });
-                if (roundData.sitOut.length > 0) {
-                    t += `<tr><td class="sit-out" colspan="3">Sit Out: ${roundData.sitOut.map(p=>p.name).join(', ')}</td></tr>`;
-                }
-                t += `</table>`;
-                return t;
-            };
-            html += buildTable(data.time1, data.round1);
-            html += buildTable(data.time2, data.round2);
-            return html;
-        }
-
-        function openShareView() {
-            const outBox = document.getElementById('output');
-            const dateStr = document.getElementById('sessionDate').value;
-            if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
-            const win = window.open("", "_blank");
-            win.document.write(`
-                <html><head><title>Schedule ${dateStr}</title>
-                <style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; text-align: center; }
-                h1 { color: #003366; } h2 { background-color: #003366; color: white; padding: 5px; margin-top: 30px; border-radius: 4px; }
-                h3 { color: #003366; margin-bottom: 5px; margin-top: 15px; }
-                table { width: 100%; max-width: 800px; margin: 0 auto; border-collapse: collapse; border: 2px solid #003366; }
-                th { background-color: #003366; color: white; padding: 8px; } td { border: 1px solid #ccc; padding: 8px; }
-                .sit-out { background-color: #eef; font-weight: bold; } @media print { button { display: none; } }</style>
-                </head><body><h1>🎾 Schedule - ${dateStr}</h1>${outBox.innerHTML}<br><button onclick="window.print()">Print / PDF</button></body></html>
-            `);
-            win.document.close();
-        }
-
-        function downloadWordDoc() {
-            const outBox = document.getElementById('output');
-            const dateStr = document.getElementById('sessionDate').value;
-            if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
-            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Tennis Schedule</title><style>body { font-family: Arial, sans-serif; } h1, h2, h3 { color: #003366; } h2 { background-color: #003366; color: white; padding: 5px; } table { border-collapse: collapse; width: 100%; margin-bottom: 20px; } td, th { border: 1px solid #003366; padding: 8px; text-align: center; } th { background-color: #003366; color: white; } .sit-out { background-color: #eef; font-weight: bold; }</style></head><body><h1>🎾 Wednesday Schedule - " + dateStr + "</h1>";
-            var sourceHTML = header + outBox.innerHTML + "</body></html>";
-            var source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
-            var fileDownload = document.createElement("a");
-            document.body.appendChild(fileDownload);
-            fileDownload.href = source;
-            fileDownload.download = 'tennis_schedule_' + dateStr + '.doc';
-            fileDownload.click();
-            document.body.removeChild(fileDownload);
-        }
-    </script>
-</body>
-</html>
-
+Miguel Caparros,3,M
+Minnie Badenoch,4,F
+Mr Rupert Merton,2,M
+Nigel Gurkin,2,M
+Olga Selivanova,2,F
+philip watson,3,M
+Philip Wilkinson ,2,M
+Philippe ,3,M
+Raj Persaud,3,M
+Richard Prosser,2,M
+Rick Hanreck,3,M
+Robin Priest,4,M
+Russell Duckworth,2,M
+Steffi ,3,F
+Toby Martin ,1,M
+Tom Lissauer,3,M
