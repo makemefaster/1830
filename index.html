@@ -61,11 +61,98 @@
         .schedule-output { background: white; padding: 20px; margin-top: 20px; border: 1px solid #ddd; display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #003366; font-size: 0.9em; }
         th { background-color: #003366; color: white; padding: 8px; text-align: center; }
+        td { border: <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wednesday Staggered Tennis Schedule</title>
+    <style>
+        /* Queen's Club Style - Blue & White */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 1100px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; color: #333; }
+        h1 { color: #003366; border-bottom: 3px solid #003366; padding-bottom: 10px; }
+        h2 { color: #003366; margin-top: 30px; border-bottom: 1px solid #ccc; }
+        
+        label { font-weight: bold; display: block; margin-top: 15px; color: #003366; }
+        .help-text { font-size: 0.85em; color: #666; margin-bottom: 5px; font-style: italic; }
+        
+        /* Layout */
+        .container-flex { display: flex; gap: 20px; flex-wrap: wrap; }
+        .col-master { flex: 1; min-width: 300px; border-right: 2px dashed #ccc; padding-right: 20px; }
+        .col-weekly { flex: 2; min-width: 400px; }
+
+        .group-container { background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
+        .group-header { background-color: #003366; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; }
+        .master-header { background-color: #444; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; }
+
+        input, textarea, button { 
+            box-sizing: border-box; 
+            width: 100%; 
+            padding: 10px; 
+            border-radius: 4px; 
+            border: 1px solid #ccc; 
+            font-family: inherit;
+        }
+        
+        textarea { font-family: monospace; font-size: 14px; }
+        
+        /* Button Styles */
+        .button-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        
+        button { 
+            width: auto; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 16px;
+            border: none;
+            padding: 12px 24px;
+            flex: 1;
+        }
+        
+        #btnGenerate { background-color: #003366; color: white; } 
+        #btnGenerate:hover { background-color: #002244; }
+        #btnShare { background-color: #4CAF50; color: white; } 
+        #btnShare:hover { background-color: #45a049; }
+        #btnWord { background-color: #2b5797; color: white; }
+        #btnWord:hover { background-color: #1e3f6f; }
+        #btnClear { background-color: #d9534f; color: white; flex: 0 0 auto; }
+        #btnClear:hover { background-color: #c9302c; }
+
+        /* Output Styles */
+        .schedule-output { background: white; padding: 20px; margin-top: 20px; border: 1px solid #ddd; display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #003366; font-size: 0.9em; }
+        th { background-color: #003366; color: white; padding: 8px; text-align: center; }
         td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         .sit-out { background-color: #eef; color: #003366; font-weight: bold; }
         
+        /* DRAG AND DROP STYLES */
+        .draggable-player {
+            cursor: move; /* Shows the move cursor */
+            cursor: grab;
+            transition: background-color 0.2s;
+        }
+        .draggable-player:hover {
+            background-color: #fffacd; /* Light yellow highlight on hover */
+            border: 1px dashed #003366;
+        }
+        .draggable-player:active {
+            cursor: grabbing;
+        }
+        .over {
+            border: 2px dashed #000;
+            background-color: #e6f7ff;
+        }
+
         .error-box { background-color: #ffe6e6; color: #d8000c; padding: 10px; border: 1px solid #d8000c; margin-top: 20px; display: none; }
+        
+        .drag-hint {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -80,7 +167,7 @@
         <div class="col-master">
             <div class="group-container" style="background-color: #f9f9f9;">
                 <div class="master-header">📂 Master Player Bank</div>
-                <div class="help-text">Keep all your regulars here.<br><strong>Copy/Paste</strong> players from here into the groups on the right.</div>
+                <div class="help-text">Database of all regulars.<br>Format: <strong>Name, Rating, M/W</strong></div>
                 <textarea id="masterList" rows="30" placeholder="Alex, 4, M&#10;Ben, 3, M&#10;...">Alexandra Stopps,3,F
 Amir Lari,3,M
 Anna Allen-Jones,2,F
@@ -132,8 +219,7 @@ Robin Priest,4,M
 Russell Duckworth,2,M
 Steffi ,3,F
 Toby Martin ,1,M
-Tom Lissauer,3,M</textarea>
-                <div class="help-text" style="margin-top:10px;">Format: Name, Rating, M/W</div>
+Tom Lissauer,3,</textarea>
             </div>
         </div>
 
@@ -145,6 +231,7 @@ Tom Lissauer,3,M</textarea>
             <div class="group-container">
                 <div class="group-header">Group 1: Early (4:30 - 6:30)</div>
                 <label>Players Playing This Week:</label>
+                <div class="help-text">Paste names only (e.g., "Alex") OR full details.</div>
                 <textarea id="playersG1" rows="6"></textarea>
                 <label>Courts:</label>
                 <textarea id="courtsG1" rows="1">1, 2</textarea>
@@ -153,6 +240,7 @@ Tom Lissauer,3,M</textarea>
             <div class="group-container">
                 <div class="group-header">Group 2: Late (5:30 - 7:30)</div>
                 <label>Players Playing This Week:</label>
+                <div class="help-text">Paste names only (e.g., "Isaac") OR full details.</div>
                 <textarea id="playersG2" rows="10"></textarea>
                 <label>Courts:</label>
                 <textarea id="courtsG2" rows="1">3, 4, 5, 6</textarea>
@@ -167,10 +255,11 @@ Tom Lissauer,3,M</textarea>
     </div>
 
     <div id="errorContainer" class="error-box"></div>
+    
     <div id="output" class="schedule-output"></div>
 
     <script>
-        const STORAGE_KEY = 'tennis_staggered_v5_master';
+        const STORAGE_KEY = 'tennis_staggered_v6_lookup';
 
         // --- INITIALIZATION ---
         window.onload = function() {
@@ -189,10 +278,7 @@ Tom Lissauer,3,M</textarea>
                 const saved = localStorage.getItem(STORAGE_KEY);
                 if (saved) {
                     const data = JSON.parse(saved);
-                    // Load Master List
                     if(data.master) document.getElementById('masterList').value = data.master;
-                    
-                    // Load Weekly inputs (if user closed browser mid-planning)
                     document.getElementById('playersG1').value = data.p1 || "";
                     document.getElementById('courtsG1').value = data.c1 || "";
                     document.getElementById('playersG2').value = data.p2 || "";
@@ -202,30 +288,79 @@ Tom Lissauer,3,M</textarea>
         };
 
         function clearWeeklyInputs() {
-            if(confirm("Are you sure you want to clear the weekly groups? The Master Bank will remain.")) {
+            if(confirm("Clear weekly inputs? Master Bank will be saved.")) {
                 document.getElementById('playersG1').value = "";
                 document.getElementById('playersG2').value = "";
             }
         }
 
-        // --- PARSING ---
-        function parsePlayers(text) {
-            const tokens = text.replace(/[\r\n]+/g, ',') 
-                               .split(',')
-                               .map(t => t.trim())
-                               .filter(t => t.length > 0);
-
-            const players = [];
+        // --- LOOKUP & PARSING ---
+        
+        // 1. Convert Master List into a Lookup Object
+        function getMasterDatabase() {
+            const masterText = document.getElementById('masterList').value;
+            const db = {};
+            
+            const tokens = masterText.replace(/[\r\n]+/g, ',').split(',');
             for (let i = 0; i < tokens.length; i += 3) {
                 if (tokens[i] && tokens[i+1]) {
-                    const name = tokens[i];
+                    const name = tokens[i].trim();
                     const ability = parseFloat(tokens[i+1]);
                     let gender = 'U';
-                    if (tokens[i+2]) gender = tokens[i+2].toUpperCase();
-
-                    if (name && !isNaN(ability)) {
-                        players.push({ name, ability, gender });
+                    if (tokens[i+2]) gender = tokens[i+2].trim().toUpperCase();
+                    
+                    if(name) {
+                        // Store in DB with lowercase key for easy matching
+                        db[name.toLowerCase()] = { name: name, ability: ability, gender: gender };
                     }
+                }
+            }
+            return db;
+        }
+
+        // 2. Parse Weekly inputs using the Database for lookup
+        function parsePlayers(text, db) {
+            // Split by newlines OR commas to handle list pastes
+            const rawLines = text.split(/[\r\n,]+/);
+            const players = [];
+
+            // We iterate through raw lines. 
+            // If a line matches a name in DB, we use DB data.
+            // If it looks like "Name, Rating, Gender", we parse it manually.
+            
+            for (let i = 0; i < rawLines.length; i++) {
+                let token = rawLines[i].trim();
+                if(token.length === 0) continue;
+
+                // Check if this token is a Name in our DB
+                if (db[token.toLowerCase()]) {
+                    // FOUND IN DB!
+                    players.push(db[token.toLowerCase()]);
+                } 
+                // Checks if user pasted "Name, Rating, Gender" manually
+                else if (i + 1 < rawLines.length && !isNaN(parseFloat(rawLines[i+1]))) {
+                    // Manual entry detected
+                    const name = token;
+                    const ability = parseFloat(rawLines[i+1]);
+                    let gender = 'U';
+                    // Check next token for gender
+                    if(i + 2 < rawLines.length) {
+                        const potentialGender = rawLines[i+2].trim().toUpperCase();
+                        if(potentialGender === 'M' || potentialGender === 'W') {
+                            gender = potentialGender;
+                            i += 2; // skip
+                        } else {
+                            i += 1; // skip rating
+                        }
+                    } else {
+                        i += 1; // skip rating
+                    }
+                    players.push({ name, ability, gender });
+                }
+                // Fallback: Name not found, no rating provided
+                else {
+                    // Treat as guest with default rating 3
+                    players.push({ name: token + " (Guest)", ability: 3, gender: 'U' });
                 }
             }
             return players;
@@ -343,27 +478,35 @@ Tom Lissauer,3,M</textarea>
                 const p2Text = document.getElementById('playersG2').value;
                 const c2Text = document.getElementById('courtsG2').value;
 
-                // SAVE EVERYTHING
+                // SAVE
                 const saveData = { master: master, p1: p1Text, c1: c1Text, p2: p2Text, c2: c2Text };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
 
-                const players1 = parsePlayers(p1Text);
+                // 1. Build DB
+                const db = getMasterDatabase();
+
+                // 2. Parse Players using DB lookup
+                const players1 = parsePlayers(p1Text, db);
                 const courts1 = parseCourts(c1Text);
                 const result1 = scheduleGroup(players1, courts1, ["4:30 PM - 5:30 PM", "5:30 PM - 6:30 PM"]);
 
-                const players2 = parsePlayers(p2Text);
+                const players2 = parsePlayers(p2Text, db);
                 const courts2 = parseCourts(c2Text);
                 const result2 = scheduleGroup(players2, courts2, ["5:30 PM - 6:30 PM", "6:30 PM - 7:30 PM"]);
 
-                let html = "";
+                let html = "<div class='drag-hint'>💡 <strong>Tip:</strong> Drag and drop names to swap players manually.</div>";
+                
                 if (result1) html += renderGroupHTML("Group 1 (Early Starters)", result1, courts1);
                 if (result1 && result2) html += "<br><hr style='border-top: 3px double #003366;'><br>";
                 if (result2) html += renderGroupHTML("Group 2 (Late Starters)", result2, courts2);
 
-                if (html === "") throw "Please copy players from the Master Bank into Group 1 or Group 2.";
+                if (html === "") throw "Please copy players into Group 1 or Group 2.";
 
                 outBox.innerHTML = html;
                 outBox.style.display = 'block';
+
+                // ENABLE DRAG AND DROP
+                addDragAndDropListeners();
 
             } catch(err) {
                 errBox.innerText = err;
@@ -378,7 +521,11 @@ Tom Lissauer,3,M</textarea>
                 t += `<table><tr><th>Court</th><th>Team A</th><th>Team B</th></tr>`;
                 roundData.matches.forEach((m, idx) => {
                     let cName = courtNames[idx] || `C${idx+1}`;
-                    t += `<tr><td style="font-weight:bold;">${cName}</td><td>${m[0].name} & ${m[1].name}</td><td>${m[2].name} & ${m[3].name}</td></tr>`;
+                    t += `<tr>
+                        <td style="font-weight:bold;">${cName}</td>
+                        <td class="draggable-player" draggable="true">${m[0].name} & ${m[1].name}</td>
+                        <td class="draggable-player" draggable="true">${m[2].name} & ${m[3].name}</td>
+                    </tr>`;
                 });
                 if (roundData.sitOut.length > 0) {
                     t += `<tr><td class="sit-out" colspan="3">Sit Out: ${roundData.sitOut.map(p=>p.name).join(', ')}</td></tr>`;
@@ -391,6 +538,58 @@ Tom Lissauer,3,M</textarea>
             return html;
         }
 
+        // --- DRAG AND DROP LOGIC ---
+        function addDragAndDropListeners() {
+            let dragSrcEl = null;
+
+            function handleDragStart(e) {
+                dragSrcEl = this;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.innerHTML);
+                this.style.opacity = '0.4';
+            }
+
+            function handleDragOver(e) {
+                if (e.preventDefault) e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                this.classList.add('over');
+                return false;
+            }
+
+            function handleDragLeave(e) {
+                this.classList.remove('over');
+            }
+
+            function handleDrop(e) {
+                if (e.stopPropagation) e.stopPropagation();
+                if (dragSrcEl !== this) {
+                    // Swap HTML content
+                    dragSrcEl.innerHTML = this.innerHTML;
+                    this.innerHTML = e.dataTransfer.getData('text/html');
+                }
+                return false;
+            }
+
+            function handleDragEnd(e) {
+                this.style.opacity = '1';
+                let items = document.querySelectorAll('.draggable-player');
+                items.forEach(function (item) {
+                    item.classList.remove('over');
+                });
+            }
+
+            let items = document.querySelectorAll('.draggable-player');
+            items.forEach(function(item) {
+                item.addEventListener('dragstart', handleDragStart, false);
+                item.addEventListener('dragenter', handleDragOver, false); // reuse over logic
+                item.addEventListener('dragover', handleDragOver, false);
+                item.addEventListener('dragleave', handleDragLeave, false);
+                item.addEventListener('drop', handleDrop, false);
+                item.addEventListener('dragend', handleDragEnd, false);
+            });
+        }
+
+        // --- EXPORT FUNCTIONS ---
         function openShareView() {
             const outBox = document.getElementById('output');
             const dateStr = document.getElementById('sessionDate').value;
@@ -414,7 +613,11 @@ Tom Lissauer,3,M</textarea>
             const dateStr = document.getElementById('sessionDate').value;
             if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
             var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Tennis Schedule</title><style>body { font-family: Arial, sans-serif; } h1, h2, h3 { color: #003366; } h2 { background-color: #003366; color: white; padding: 5px; } table { border-collapse: collapse; width: 100%; margin-bottom: 20px; } td, th { border: 1px solid #003366; padding: 8px; text-align: center; } th { background-color: #003366; color: white; } .sit-out { background-color: #eef; font-weight: bold; }</style></head><body><h1>🎾 Wednesday Schedule - " + dateStr + "</h1>";
-            var sourceHTML = header + outBox.innerHTML + "</body></html>";
+            
+            // Remove the drag hint from Word Doc
+            let cleanHTML = outBox.innerHTML.replace(/<div class="drag-hint">.*?<\/div>/, "");
+            
+            var sourceHTML = header + cleanHTML + "</body></html>";
             var source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
             var fileDownload = document.createElement("a");
             document.body.appendChild(fileDownload);
