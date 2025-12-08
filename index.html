@@ -7,7 +7,15 @@
     <style>
         /* Queen's Club Style - Blue & White */
         body { font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 1100px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; color: #333; }
-        h1 { color: #003366; border-bottom: 3px solid #003366; padding-bottom: 10px; }
+        
+        /* Header Layout */
+        .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #003366; padding-bottom: 10px; margin-bottom: 20px; }
+        h1 { color: #003366; margin: 0; }
+        
+        .data-controls { display: flex; gap: 10px; }
+        .data-btn { font-size: 13px; padding: 5px 10px; background: #eee; border: 1px solid #ccc; cursor: pointer; border-radius: 4px; }
+        .data-btn:hover { background: #ddd; }
+
         h2 { color: #003366; margin-top: 30px; border-bottom: 1px solid #ccc; }
         
         label { font-weight: bold; display: block; margin-top: 15px; color: #003366; }
@@ -87,7 +95,7 @@
             padding: 20px;
             margin-bottom: 20px;
             border-radius: 8px;
-            display: none; /* Hidden by default */
+            display: none; 
         }
         .resolver-title { font-weight: bold; font-size: 1.2em; color: #856404; margin-bottom: 10px; }
         .unknown-item {
@@ -112,7 +120,14 @@
 </head>
 <body>
 
-    <h1>🎾 Wednesday Staggered Schedule</h1>
+    <div class="header-row">
+        <h1>🎾 Wednesday Staggered Schedule</h1>
+        <div class="data-controls">
+            <button class="data-btn" onclick="backupData()">⬇️ Backup Data</button>
+            <button class="data-btn" onclick="document.getElementById('restoreInput').click()">⬆️ Restore Data</button>
+            <input type="file" id="restoreInput" style="display:none" onchange="restoreData(this)">
+        </div>
+    </div>
 
     <label for="sessionDate">Session Date:</label>
     <input type="date" id="sessionDate">
@@ -123,60 +138,30 @@
             <div class="group-container" style="background-color: #f9f9f9;">
                 <div class="master-header">📂 Master Player Bank</div>
                 <div class="help-text">Database of all regulars.<br>Format: <strong>Name, Rating, M/W</strong> (One per line)</div>
-                <textarea id="masterList" rows="30" oninput="updateDBStatus()" placeholder="Alex, 4, M&#10;Ben, 3, M&#10;...">Amir Lari,3,M
-Annabel Royden,3,F
-Bridgett Walters,5,F
-Daniel Hazan,2,M
-Gabriella Di Nora,4,F
-Heather Mott,3,F
-Howard Cramer,4,F
-Katherine Maguire,2,F
-Martyn Robertson,4,M
-Massimiliano Casini,2,M
-Michael McKinnon,5,M
-Alexandra Stopps,3,F
-Anna Allen-Jones,2,F
-Antonio Tomassini,3,F
-Benedetta,3,F
-Christina Houston Edwards,2,F
-Christopher O'Callaghan,3,F
-David Drayson,2,M
-David Henderson-Williams,2,M
-Denys Firth,2,M
-Donna Didizian,2,F
-Elizabeth Agha,2,F
-Eric Wilkinson,2,M
-Fen Aird,3,F
-Frederick Satow,2,M
-Gwenyth Davis,3,F
-James Hall,2,M
-Jane Asscher,3,F
-Jane Ylvisaker,4,F
-Jennifer Hall,3,F
-John Evangelides,3,M
-John Yorke,2,M
-Julie Baldwin,3,F
-Jurate Hardy,1,F
-Kate Rowe,3,F
-Michael Stone,2,M
-Miguel Caparros,3,M
-Minnie Badenoch,4,F
-Nigel Gurkin,2,M
-Olga Selivanova,2,F
-Penelope Davis,3,M
-Philip Watson,3,M
-Philip Wilkinson ,2,M
-Philippe Goffin,3,M
-Raj Persaud,3,M
-Richard Hanreck,3,M
-Richard Prosser,2,M
-Roslyn Watson,3,F
-Russell Duckworth,2,M
-Sally Dargavel,2,F
-Shahnaz Atighetchi,3,F
-Shona Stopford Sackille,3,F
-Simon H. Davies,3,M
-Steffi Spitznagel,3,F</textarea>
+                <textarea id="masterList" rows="30" oninput="updateDBStatus()" placeholder="Alex, 4, M&#10;Ben, 3, M&#10;...">Alex, 4, M
+Ben, 3, M
+Chloe, 5, W
+David, 2, M
+Emily, 3, W
+Finn, 4, M
+Grace, 2, W
+Hugo, 5, M
+Isaac, 3, M
+Jane, 4, W
+Karl, 2, M
+Leah, 3, W
+Mark, 5, M
+Nina, 4, W
+Owen, 2, M
+Pam, 3, W
+Quinn, 4, M
+Rob, 3, M
+Steve, 4, M
+Tim, 2, M
+Ursula, 3, W
+Victor, 5, M
+Will, 4, M
+Xena, 3, W</textarea>
                 <div id="dbStatus"></div>
             </div>
         </div>
@@ -223,7 +208,7 @@ Steffi Spitznagel,3,F</textarea>
     <div id="output" class="schedule-output"></div>
 
     <script>
-        const STORAGE_KEY = 'tennis_staggered_v10_resolver';
+        const STORAGE_KEY = 'tennis_staggered_v11_backup';
 
         // --- INITIALIZATION ---
         window.onload = function() {
@@ -252,6 +237,53 @@ Steffi Spitznagel,3,F</textarea>
             
             updateDBStatus();
         };
+
+        // --- BACKUP & RESTORE FUNCTIONS ---
+        function backupData() {
+            const data = {
+                master: document.getElementById('masterList').value,
+                p1: document.getElementById('playersG1').value,
+                c1: document.getElementById('courtsG1').value,
+                p2: document.getElementById('playersG2').value,
+                c2: document.getElementById('courtsG2').value,
+                date: new Date().toISOString()
+            };
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "tennis_backup_" + new Date().toISOString().slice(0,10) + ".json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function restoreData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.master) document.getElementById('masterList').value = data.master;
+                    if(data.p1) document.getElementById('playersG1').value = data.p1;
+                    if(data.c1) document.getElementById('courtsG1').value = data.c1;
+                    if(data.p2) document.getElementById('playersG2').value = data.p2;
+                    if(data.c2) document.getElementById('courtsG2').value = data.c2;
+                    
+                    // Save to local storage immediately
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                    updateDBStatus();
+                    alert("Data restored successfully!");
+                } catch(err) {
+                    alert("Error reading file: " + err);
+                }
+            };
+            reader.readAsText(file);
+        }
 
         function clearWeeklyInputs() {
             if(confirm("Clear weekly inputs? Master Bank will be saved.")) {
@@ -289,14 +321,12 @@ Steffi Spitznagel,3,F</textarea>
 
         // --- FUZZY MATCHING (Levenshtein Distance) ---
         function getSimilarity(s1, s2) {
-            let longer = s1;
-            let shorter = s2;
+            let longer = s1; let shorter = s2;
             if (s1.length < s2.length) { longer = s2; shorter = s1; }
             let longerLength = longer.length;
             if (longerLength == 0) return 1.0;
             return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
         }
-
         function editDistance(s1, s2) {
             s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
             let costs = new Array();
@@ -317,18 +347,12 @@ Steffi Spitznagel,3,F</textarea>
             }
             return costs[s2.length];
         }
-
         function findClosestMatch(name, dbKeys) {
-            let bestMatch = null;
-            let highestScore = 0;
+            let bestMatch = null; let highestScore = 0;
             dbKeys.forEach(key => {
                 const score = getSimilarity(name.toLowerCase(), key);
-                if (score > highestScore) {
-                    highestScore = score;
-                    bestMatch = key;
-                }
+                if (score > highestScore) { highestScore = score; bestMatch = key; }
             });
-            // Return match if > 60% similar, else null
             return highestScore > 0.6 ? bestMatch : null;
         }
 
@@ -343,17 +367,13 @@ Steffi Spitznagel,3,F</textarea>
             const db = getMasterDatabase();
             const unknowns = [];
 
-            // Helper to scan text for unknown names
             const scanForUnknowns = (text, fieldId) => {
                 const lines = text.split(/[\r\n,]+/);
                 lines.forEach(line => {
                     let token = line.trim();
                     if(!token) return;
-                    // Skip if looks like manual entry "Name, 4"
                     if (/\d/.test(token)) return; 
-                    
                     if (!db[token.toLowerCase()]) {
-                        // Check if we already found this unknown
                         if(!unknowns.find(u => u.name === token)) {
                             unknowns.push({ name: token, fieldId: fieldId });
                         }
@@ -364,11 +384,8 @@ Steffi Spitznagel,3,F</textarea>
             scanForUnknowns(p1Text, 'playersG1');
             scanForUnknowns(p2Text, 'playersG2');
 
-            if (unknowns.length > 0) {
-                showResolver(unknowns, db);
-            } else {
-                generateAllSchedules();
-            }
+            if (unknowns.length > 0) { showResolver(unknowns, db); } 
+            else { generateAllSchedules(); }
         }
 
         function showResolver(unknowns, db) {
@@ -379,92 +396,56 @@ Steffi Spitznagel,3,F</textarea>
             unknowns.forEach(u => {
                 const closest = findClosestMatch(u.name, dbKeys);
                 let suggestionHtml = "";
-                
                 if (closest) {
                     const properName = db[closest].name;
-                    suggestionHtml = `
-                        <span>Did you mean: </span>
-                        <button class="suggestion-btn" onclick="resolveTypo('${u.name}', '${properName}', '${u.fieldId}')">${properName}</button>
-                        <span> OR </span>
-                    `;
+                    suggestionHtml = `<span>Did you mean: </span><button class="suggestion-btn" onclick="resolveTypo('${u.name}', '${properName}', '${u.fieldId}')">${properName}</button><span> OR </span>`;
                 }
 
                 const div = document.createElement('div');
                 div.className = 'unknown-item';
-                div.innerHTML = `
-                    <div class="unknown-name">"${u.name}"</div>
-                    ${suggestionHtml}
-                    <div style="flex:1; display:flex; gap:5px; align-items:center;">
-                        <span>New:</span>
-                        <input type="number" id="rating_${u.name}" placeholder="Rating" step="0.5" style="width:70px;">
-                        <select id="gender_${u.name}" style="width:60px;">
-                            <option value="M">M</option>
-                            <option value="W">W</option>
-                        </select>
-                        <button class="add-btn" onclick="resolveNew('${u.name}')">Add to Bank</button>
-                    </div>
-                `;
+                div.innerHTML = `<div class="unknown-name">"${u.name}"</div>${suggestionHtml}<div style="flex:1; display:flex; gap:5px; align-items:center;"><span>New:</span><input type="number" id="rating_${u.name}" placeholder="Rating" step="0.5" style="width:70px;"><select id="gender_${u.name}" style="width:60px;"><option value="M">M</option><option value="W">W</option></select><button class="add-btn" onclick="resolveNew('${u.name}')">Add to Bank</button></div>`;
                 container.appendChild(div);
             });
-
             document.getElementById('resolverContainer').style.display = 'block';
         }
 
         function resolveTypo(wrongName, rightName, fieldId) {
             const field = document.getElementById(fieldId);
-            // Replace word boundary matching to ensure we don't replace parts of other words
             const regex = new RegExp(`\\b${wrongName}\\b`, 'g');
             field.value = field.value.replace(regex, rightName);
-            // Re-run check
             startGenerationProcess();
         }
 
         function resolveNew(name) {
             const rating = document.getElementById(`rating_${name}`).value;
             const gender = document.getElementById(`gender_${name}`).value;
-            
             if(!rating) { alert("Please enter a rating."); return; }
-
-            // Add to Master List
             const masterBox = document.getElementById('masterList');
             const newLine = `\n${name}, ${rating}, ${gender}`;
             masterBox.value += newLine;
-            
-            // Save immediately
             updateDBStatus();
-            
-            // Re-run check
             startGenerationProcess();
         }
 
-        // --- SCHEDULING (Existing Logic) ---
+        // --- SCHEDULING ---
         function parsePlayers(text, db) {
             const rawLines = text.split(/[\r\n,]+/);
             const players = [];
             for (let i = 0; i < rawLines.length; i++) {
                 let token = rawLines[i].trim();
                 if(token.length === 0) continue;
-
-                if (db[token.toLowerCase()]) {
-                    players.push(db[token.toLowerCase()]);
-                } 
+                if (db[token.toLowerCase()]) { players.push(db[token.toLowerCase()]); } 
                 else if (i + 1 < rawLines.length && !isNaN(parseFloat(rawLines[i+1]))) {
                     const name = token;
                     const ability = parseFloat(rawLines[i+1]);
                     let gender = 'U';
                     if(i + 2 < rawLines.length) {
                         const potentialGender = rawLines[i+2].trim().toUpperCase();
-                        if(potentialGender === 'M' || potentialGender === 'W') {
-                            gender = potentialGender;
-                            i += 2; 
-                        } else { i += 1; }
+                        if(potentialGender === 'M' || potentialGender === 'W') { gender = potentialGender; i += 2; } else { i += 1; }
                     } else { i += 1; }
                     players.push({ name, ability, gender });
                 }
-                else {
-                    // Should be caught by resolver, but failsafe:
-                    players.push({ name: token + " (?)", ability: 3, gender: 'U' });
-                }
+                else { players.push({ name: token + " (?)", ability: 3, gender: 'U' }); }
             }
             return players;
         }
@@ -500,6 +481,8 @@ Steffi Spitznagel,3,F</textarea>
             if (courts.length === 0) throw "No courts defined for a group with players.";
 
             const capacity = courts.length * 4;
+
+            // H1
             const selectionH1 = determinePlayPool([...players], capacity);
             selectionH1.playing.sort((a,b) => b.ability - a.ability);
             
@@ -512,6 +495,7 @@ Steffi Spitznagel,3,F</textarea>
                 history.add(getPairKey(m[2], m[3]));
             });
 
+            // H2
             const mustPlay = [...res1.sitOut];
             const playedNamesH1 = res1.matches.flat().map(p => p.name);
             const candidates = players.filter(p => playedNamesH1.includes(p.name));
@@ -566,6 +550,7 @@ Steffi Spitznagel,3,F</textarea>
             return { matches: matches, sitOut: [] };
         }
 
+        // --- RENDER & DISPLAY ---
         function generateAllSchedules() {
             const errBox = document.getElementById('errorContainer');
             const outBox = document.getElementById('output');
@@ -619,9 +604,7 @@ Steffi Spitznagel,3,F</textarea>
                     </tr>`;
                 });
                 if (roundData.sitOut.length > 0) {
-                    t += `<tr><td class="sit-out" colspan="3">Sit Out: ${roundData.sitOut.map(p => 
-                        `<span class="player-chip" draggable="true" style="background-color:white;">${p.name}</span>`
-                    ).join(' ')}</td></tr>`;
+                    t += `<tr><td class="sit-out" colspan="3">Sit Out: ${roundData.sitOut.map(p => `<span class="player-chip" draggable="true" style="background-color:white;">${p.name}</span>`).join(' ')}</td></tr>`;
                 }
                 t += `</table>`;
                 return t;
@@ -631,31 +614,22 @@ Steffi Spitznagel,3,F</textarea>
             return html;
         }
 
+        // --- DRAG AND DROP ---
         function addDragAndDropListeners() {
             let dragSrcEl = null;
             function handleDragStart(e) { dragSrcEl = this; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/html', this.innerHTML); this.style.opacity = '0.4'; }
             function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); e.dataTransfer.dropEffect = 'move'; this.classList.add('over'); return false; }
             function handleDragLeave(e) { this.classList.remove('over'); }
-            function handleDrop(e) {
-                if (e.stopPropagation) e.stopPropagation();
-                if (dragSrcEl !== this) { const temp = this.innerHTML; this.innerHTML = dragSrcEl.innerHTML; dragSrcEl.innerHTML = temp; }
-                return false;
-            }
+            function handleDrop(e) { if (e.stopPropagation) e.stopPropagation(); if (dragSrcEl !== this) { const temp = this.innerHTML; this.innerHTML = dragSrcEl.innerHTML; dragSrcEl.innerHTML = temp; } return false; }
             function handleDragEnd(e) { this.style.opacity = '1'; document.querySelectorAll('.player-chip').forEach(item => item.classList.remove('over')); }
-            document.querySelectorAll('.player-chip').forEach(item => {
-                item.addEventListener('dragstart', handleDragStart, false);
-                item.addEventListener('dragenter', handleDragOver, false);
-                item.addEventListener('dragover', handleDragOver, false);
-                item.addEventListener('dragleave', handleDragLeave, false);
-                item.addEventListener('drop', handleDrop, false);
-                item.addEventListener('dragend', handleDragEnd, false);
-            });
+            document.querySelectorAll('.player-chip').forEach(item => { item.addEventListener('dragstart', handleDragStart, false); item.addEventListener('dragenter', handleDragOver, false); item.addEventListener('dragover', handleDragOver, false); item.addEventListener('dragleave', handleDragLeave, false); item.addEventListener('drop', handleDrop, false); item.addEventListener('dragend', handleDragEnd, false); });
         }
 
+        // --- EXPORTS ---
         function openShareView() {
             const outBox = document.getElementById('output');
-            if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
             const dateStr = document.getElementById('sessionDate').value;
+            if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
             let cleanHTML = outBox.innerHTML.replace(/<span class="player-chip"[^>]*>/g, "").replace(/<\/span>/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
             const win = window.open("", "_blank");
             win.document.write(`<html><head><title>Schedule ${dateStr}</title><style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; text-align: center; } h1 { color: #003366; } h2 { background-color: #003366; color: white; padding: 5px; margin-top: 30px; border-radius: 4px; } h3 { color: #003366; margin-bottom: 5px; margin-top: 15px; } table { width: 100%; max-width: 800px; margin: 0 auto; border-collapse: collapse; border: 2px solid #003366; } th { background-color: #003366; color: white; padding: 8px; } td { border: 1px solid #ccc; padding: 8px; } .sit-out { background-color: #eef; font-weight: bold; } @media print { button { display: none; } }</style></head><body><h1>🎾 Schedule - ${dateStr}</h1>${cleanHTML}<br><button onclick="window.print()">Print / PDF</button></body></html>`);
@@ -664,8 +638,8 @@ Steffi Spitznagel,3,F</textarea>
 
         function downloadWordDoc() {
             const outBox = document.getElementById('output');
-            if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
             const dateStr = document.getElementById('sessionDate').value;
+            if (outBox.style.display === 'none') { alert("Generate schedule first."); return; }
             let cleanHTML = outBox.innerHTML.replace(/<span class="player-chip"[^>]*>/g, "").replace(/<\/span>/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
             var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Tennis Schedule</title><style>body { font-family: Arial, sans-serif; } h1, h2, h3 { color: #003366; } h2 { background-color: #003366; color: white; padding: 5px; } table { border-collapse: collapse; width: 100%; margin-bottom: 20px; } td, th { border: 1px solid #003366; padding: 8px; text-align: center; } th { background-color: #003366; color: white; } .sit-out { background-color: #eef; font-weight: bold; }</style></head><body><h1>🎾 Wednesday Schedule - " + dateStr + "</h1>";
             var sourceHTML = header + cleanHTML + "</body></html>";
