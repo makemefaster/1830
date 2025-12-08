@@ -98,6 +98,14 @@
             padding: 10px;
             font-size: 0.9em;
         }
+
+        #dbStatus {
+            font-size: 0.85em; 
+            color: green; 
+            font-weight: bold; 
+            margin-top: 5px; 
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -112,14 +120,14 @@
         <div class="col-master">
             <div class="group-container" style="background-color: #f9f9f9;">
                 <div class="master-header">📂 Master Player Bank</div>
-                <div class="help-text">Database of all regulars.<br>Format: <strong>Name, Rating, M/W</strong></div>
-                <textarea id="masterList" rows="30" placeholder="Alex, 4, M&#10;Ben, 3, M&#10;...">Amir Lari,3,M
+                <div class="help-text">Database of all regulars.<br>Format: <strong>Name, Rating, M/W</strong> (One per line)</div>
+                <textarea id="masterList" rows="30" oninput="updateDBStatus()" placeholder="Alex, 4, M&#10;Ben, 3, M&#10;...">Amir Lari,3,M
 Anna Allen-Jones,2,F
 Bridgett Walters,5,F
 Christina Houston Edwards,2,F
 Daniel Hazan,2,M
 David Henderson-Williams,2,M
-Donna Didizian,2F
+Donna Didizian,2,F
 Eric Wilkinson,2,M
 Fen Aird,3,F
 Frederick Satow,2,M
@@ -143,6 +151,7 @@ Raj Persaud,3,M
 Richard Hanreck,3,M
 Russell Duckworth,2,M
 Steffi Spitznagel,3,F</textarea>
+                <div id="dbStatus"></div>
             </div>
         </div>
 
@@ -182,7 +191,7 @@ Steffi Spitznagel,3,F</textarea>
     <div id="output" class="schedule-output"></div>
 
     <script>
-        const STORAGE_KEY = 'tennis_staggered_v8_smart';
+        const STORAGE_KEY = 'tennis_staggered_v9_stable';
 
         // --- INITIALIZATION ---
         window.onload = function() {
@@ -208,6 +217,8 @@ Steffi Spitznagel,3,F</textarea>
                     document.getElementById('courtsG2').value = data.c2 || "";
                 }
             } catch(e) {}
+            
+            updateDBStatus(); // Initialize counter
         };
 
         function clearWeeklyInputs() {
@@ -217,32 +228,58 @@ Steffi Spitznagel,3,F</textarea>
             }
         }
 
-        // --- LOOKUP & PARSING ---
+        // --- NEW: ROBUST LINE-BY-LINE PARSING ---
         function getMasterDatabase() {
             const masterText = document.getElementById('masterList').value;
             const db = {};
-            const tokens = masterText.replace(/[\r\n]+/g, ',').split(',');
-            for (let i = 0; i < tokens.length; i += 3) {
-                if (tokens[i] && tokens[i+1]) {
-                    const name = tokens[i].trim();
-                    const ability = parseFloat(tokens[i+1]);
+            
+            // Split by New Line to ensure we process one player per line
+            const lines = masterText.split(/\r?\n/);
+            
+            lines.forEach(line => {
+                // Ignore empty lines
+                if(!line.trim()) return;
+
+                const parts = line.split(',');
+                
+                // We need at least Name and Rating
+                if(parts.length >= 2) {
+                    const name = parts[0].trim();
+                    const ability = parseFloat(parts[1].trim());
                     let gender = 'U';
-                    if (tokens[i+2]) gender = tokens[i+2].trim().toUpperCase();
-                    if(name) db[name.toLowerCase()] = { name: name, ability: ability, gender: gender };
+                    if(parts.length >= 3) {
+                        gender = parts[2].trim().toUpperCase();
+                    }
+                    
+                    if(name && !isNaN(ability)) {
+                        db[name.toLowerCase()] = { name: name, ability: ability, gender: gender };
+                    }
                 }
-            }
+            });
             return db;
         }
 
+        function updateDBStatus() {
+            const db = getMasterDatabase();
+            const count = Object.keys(db).length;
+            const statusDiv = document.getElementById('dbStatus');
+            statusDiv.innerText = `✅ Loaded ${count} players from Master Bank`;
+        }
+
         function parsePlayers(text, db) {
+            // Split by newlines or commas
             const rawLines = text.split(/[\r\n,]+/);
             const players = [];
+
             for (let i = 0; i < rawLines.length; i++) {
                 let token = rawLines[i].trim();
                 if(token.length === 0) continue;
+
+                // 1. Try DB Lookup
                 if (db[token.toLowerCase()]) {
                     players.push(db[token.toLowerCase()]);
                 } 
+                // 2. Try Manual Parse (Name, Rating, Gender)
                 else if (i + 1 < rawLines.length && !isNaN(parseFloat(rawLines[i+1]))) {
                     const name = token;
                     const ability = parseFloat(rawLines[i+1]);
@@ -256,6 +293,7 @@ Steffi Spitznagel,3,F</textarea>
                     } else { i += 1; }
                     players.push({ name, ability, gender });
                 }
+                // 3. Fail: Guest
                 else {
                     players.push({ name: token + " (Guest)", ability: 3, gender: 'U' });
                 }
@@ -271,39 +309,24 @@ Steffi Spitznagel,3,F</textarea>
             return array.sort(() => Math.random() - 0.5);
         }
 
-        // --- LOGIC ENGINE ---
-        
-        // 1. SELECT WHO PLAYS VS SITS
+        // --- SCHEDULING ENGINE ---
         function determinePlayPool(allPlayers, capacity) {
             if (allPlayers.length <= capacity) {
                 return { playing: allPlayers, sitting: [] };
             }
-
-            // We need to cut some players.
-            // RULE: Rated 5 (Strongest) sit out first.
             const neededToSit = allPlayers.length - capacity;
             
-            // Separate by rating 5 vs others
+            // Prioritize Rated 5s to sit
             const ratedFive = shuffle(allPlayers.filter(p => p.ability >= 5));
             const others = shuffle(allPlayers.filter(p => p.ability < 5));
-            
-            // Others should be sorted by ability (High -> Low) so if we must sit non-5s, we sit the strong ones
             others.sort((a,b) => b.ability - a.ability);
 
             const sitOuts = [];
             const playing = [];
 
-            // Fill sit-out slots with 5s first
-            while (sitOuts.length < neededToSit && ratedFive.length > 0) {
-                sitOuts.push(ratedFive.pop());
-            }
+            while (sitOuts.length < neededToSit && ratedFive.length > 0) sitOuts.push(ratedFive.pop());
+            while (sitOuts.length < neededToSit && others.length > 0) sitOuts.push(others.shift());
 
-            // If we still need more sitters, take from the 'others' (highest rated first)
-            while (sitOuts.length < neededToSit && others.length > 0) {
-                sitOuts.push(others.shift()); // Shift takes the highest rated from sorted array
-            }
-
-            // Everyone left plays
             playing.push(...ratedFive);
             playing.push(...others);
 
@@ -320,51 +343,31 @@ Steffi Spitznagel,3,F</textarea>
 
             const capacity = courts.length * 4;
 
-            // --- HOUR 1 ---
-            // Use new logic to prioritize Rate 5s sitting out
+            // H1
             const selectionH1 = determinePlayPool([...players], capacity);
-            
-            // Sort playing pool by ability for better matchmaking
             selectionH1.playing.sort((a,b) => b.ability - a.ability);
             
             const res1 = createMatches(selectionH1.playing, courts, new Set());
-            // Add the determined sitouts
             res1.sitOut = selectionH1.sitting;
             
-            // Track History
             const history = new Set();
             res1.matches.forEach(m => {
                 history.add(getPairKey(m[0], m[1]));
                 history.add(getPairKey(m[2], m[3]));
             });
 
-            // --- HOUR 2 ---
-            // RULE: Sitters from H1 MUST play.
+            // H2
             const mustPlay = [...res1.sitOut];
-            
-            // Get everyone else who played in H1
             const playedNamesH1 = res1.matches.flat().map(p => p.name);
             const candidates = players.filter(p => playedNamesH1.includes(p.name));
             
-            // Shuffle candidates to randomize who sits out a second time (if necessary)
-            // But generally, we just fill the remaining spots
-            const remainingSpots = capacity - mustPlay.length;
-            
-            // If we have fewer spots than must-plays (unlikely), we just take what we can
-            // If we have more spots, we fill from candidates
             const selectionH2 = { playing: [...mustPlay], sitting: [] };
-            
-            // Shuffle candidates and pick enough to fill spots
             const shuffledCandidates = shuffle(candidates);
             
-            // If we have space, add candidates
             while(selectionH2.playing.length < capacity && shuffledCandidates.length > 0) {
                 selectionH2.playing.push(shuffledCandidates.pop());
             }
-            // Anyone left in candidates sits out (this prevents double sit-outs for the H1 sitters)
             selectionH2.sitting = shuffledCandidates;
-
-            // Sort H2 playing pool by ability
             selectionH2.playing.sort((a,b) => b.ability - a.ability);
 
             const res2 = createMatches(selectionH2.playing, courts, history);
@@ -373,17 +376,13 @@ Steffi Spitznagel,3,F</textarea>
             return { time1: timeSlots[0], round1: res1, time2: timeSlots[1], round2: res2 };
         }
 
-        // SMART MATCHER
         function createMatches(pool, courts, partnerHistory) {
             const matches = [];
-            
-            // We assume pool is exactly size needed or less (handled by determining function)
             let tempPool = [...pool];
 
             for(let i=0; i<courts.length; i++) {
                 if(tempPool.length < 4) break;
                 
-                // Take 4 players of similar ability (since pool is sorted)
                 let p1 = tempPool.shift();
                 let p2 = tempPool.shift();
                 let p3 = tempPool.shift(); 
@@ -406,25 +405,17 @@ Steffi Spitznagel,3,F</textarea>
                     const t2b = courtPlayers[combo[1][1]];
 
                     let score = 0;
-                    
-                    // 1. History (Avoid Repeats)
                     if (partnerHistory.has(getPairKey(t1a, t1b))) score -= 10000;
                     if (partnerHistory.has(getPairKey(t2a, t2b))) score -= 10000;
 
-                    // 2. Mixed Doubles Priority (MASSIVE BOOST)
-                    // We check if teams are Mixed (M+W)
                     const t1Mixed = (t1a.gender !== t1b.gender && t1a.gender !== 'U' && t1b.gender !== 'U');
                     const t2Mixed = (t2a.gender !== t2b.gender && t2a.gender !== 'U' && t2b.gender !== 'U');
+                    if (t1Mixed && t2Mixed) score += 500; 
+                    else if (t1Mixed || t2Mixed) score += 50;
 
-                    if (t1Mixed && t2Mixed) score += 500; // Perfect Scenario: Mixed vs Mixed
-                    else if (t1Mixed || t2Mixed) score += 50; // Partial Mixed
-
-                    // 3. Ability Balance (Minimise Gap)
                     const t1Sum = t1a.ability + t1b.ability;
                     const t2Sum = t2a.ability + t2b.ability;
-                    const diff = Math.abs(t1Sum - t2Sum);
-                    
-                    score -= (diff * 20); // Penalty for uneven games
+                    score -= (Math.abs(t1Sum - t2Sum) * 20); 
 
                     if (score > bestScore) {
                         bestScore = score;
@@ -433,10 +424,10 @@ Steffi Spitznagel,3,F</textarea>
                 });
                 matches.push(bestCombo);
             }
-            return { matches: matches, sitOut: [] }; // Sitouts handled by wrapper function
+            return { matches: matches, sitOut: [] };
         }
 
-        // --- MAIN GENERATE ---
+        // --- RENDER & DISPLAY ---
         function generateAllSchedules() {
             const errBox = document.getElementById('errorContainer');
             const outBox = document.getElementById('output');
