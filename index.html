@@ -71,6 +71,16 @@
         .schedule-output { background: white; padding: 20px; margin-top: 20px; border: 1px solid #ddd; display: none; }
         .public-view .schedule-output { display: block; border: none; padding: 0; margin-top: 0; }
         
+        /* Public View Date Header */
+        .public-date-display {
+            text-align: center;
+            color: #003366;
+            margin-bottom: 30px;
+            font-size: 2em;
+            border-bottom: 3px solid #003366;
+            padding-bottom: 15px;
+        }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #003366; font-size: 0.9em; }
         th { background-color: #003366; color: white; padding: 8px; text-align: center; }
         td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
@@ -109,16 +119,16 @@
 
     <div id="app-container">
         
-        <div class="header-row">
+        <div class="header-row admin-only">
             <h1>🎾 Wednesday Staggered Schedule</h1>
-            <div class="user-controls admin-only">
+            <div class="user-controls">
                 <span id="user-display" class="user-email"></span>
                 <button class="logout-btn" onclick="logout()">Sign Out</button>
             </div>
         </div>
 
         <div class="public-only">
-            <h2 id="publicDateHeader" style="text-align: center; color: #003366; border-bottom: none;"></h2>
+            <h1 id="publicDateHeader" class="public-date-display"></h1>
         </div>
 
         <div id="published-dashboard" class="admin-only" style="display:none;">
@@ -192,10 +202,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+        import { getDatabase, ref, set, push, remove, onValue, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-        // --- YOUR CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
             authDomain: "project-8381867246864635545.firebaseapp.com",
@@ -233,13 +242,17 @@
             onValue(schedRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    document.getElementById('publicDateHeader').innerText = "Date: " + data.date;
+                    // Format Date Nicely
+                    const dateObj = new Date(data.date);
+                    const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    
+                    document.getElementById('publicDateHeader').innerText = niceDate;
                     document.getElementById('output').innerHTML = data.html;
                     document.getElementById('output').style.display = 'block';
                     let chips = document.querySelectorAll('.player-chip');
                     chips.forEach(c => { c.draggable = false; c.style.cursor = 'default'; });
                 } else {
-                    document.getElementById('app-container').innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Schedule not found.</h2>";
+                    document.getElementById('app-container').innerHTML = "<h2 style='text-align:center; margin-top:50px;'>This schedule does not exist or has been deleted.</h2>";
                 }
             });
         } else {
@@ -322,14 +335,43 @@
             dateInput.value = nextWed.toISOString().split('T')[0];
         }
 
-        function publishSchedule() {
+        // --- UPDATED PUBLISH LOGIC WITH CONFLICT CHECK ---
+        async function publishSchedule() {
             const outBox = document.getElementById('output');
             if(outBox.style.display === 'none') return alert("Generate first.");
-            let cleanHTML = outBox.innerHTML.replace(/draggable="true"/g, "").replace(/cursor: grab;/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
+            
             const dateStr = document.getElementById('sessionDate').value;
-            const newRef = push(ref(db, 'public_schedules'));
-            set(newRef, { date: dateStr, html: cleanHTML, created: Date.now() }).then(() => {
-                const link = window.location.href.split('?')[0] + "?id=" + newRef.key;
+            const dateObj = new Date(dateStr);
+            const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            // 1. Check for conflict
+            const q = query(ref(db, 'public_schedules'), orderByChild('date'), equalTo(dateStr));
+            const snapshot = await get(q);
+
+            let targetRef;
+            
+            if (snapshot.exists()) {
+                if(!confirm(`⚠️ A schedule for ${niceDate} ALREADY exists.\n\nClick OK to OVERWRITE it (keeps the same link).\nClick Cancel to change the date.`)) {
+                    return; // Stop
+                }
+                // Overwrite the existing one
+                const existingKey = Object.keys(snapshot.val())[0];
+                targetRef = ref(db, 'public_schedules/' + existingKey);
+            } else {
+                // Create new
+                targetRef = push(ref(db, 'public_schedules'));
+            }
+
+            // 2. Prepare HTML
+            let cleanHTML = outBox.innerHTML.replace(/draggable="true"/g, "").replace(/cursor: grab;/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
+
+            // 3. Save
+            set(targetRef, { 
+                date: dateStr, 
+                html: cleanHTML, 
+                created: Date.now() 
+            }).then(() => {
+                const link = window.location.href.split('?')[0] + "?id=" + targetRef.key;
                 document.getElementById('publishLink').innerText = link;
                 document.getElementById('publishModal').style.display = 'block';
             });
@@ -659,7 +701,7 @@
 
         function downloadWordDoc() {
             const out = document.getElementById('output');
-            if(out.style.display=='none') return alert("Generate first");
+            if(out.style.display=='none') return alert("Generate first.");
             let c = out.innerHTML.replace(/<span class="player-chip"[^>]*>/g, "").replace(/<\/span>/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
             const h = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Schedule</title><style>body{font-family:sans-serif;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #000;padding:5px;text-align:center;}th{background:#003366;color:white;}</style></head><body>" + c + "</body></html>";
             const b = new Blob([h], {type: 'application/msword'});
