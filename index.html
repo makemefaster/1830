@@ -6,7 +6,7 @@
     <title>Queen's Club Tennis Scheduler</title>
     <style>
         /* Queen's Club Style - Blue & White */
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 1100px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; color: #333; }
         
         /* Login Overlay */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #003366; display: flex; justify-content: center; align-items: center; z-index: 1000; }
@@ -18,7 +18,7 @@
         .login-error { color: red; font-size: 0.9em; margin-top: 10px; display: none; }
 
         /* Main App Layout */
-        #app-container { display: none; max-width: 1100px; margin: 0 auto; padding: 20px; }
+        #app-container { display: none; }
         
         /* Header */
         .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #003366; padding-bottom: 10px; margin-bottom: 20px; }
@@ -39,7 +39,7 @@
         label { font-weight: bold; display: block; margin-top: 15px; color: #003366; }
         .help-text { font-size: 0.85em; color: #666; margin-bottom: 5px; font-style: italic; }
         
-        input[type="date"], textarea { box-sizing: border-box; width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; }
+        input[type="date"], textarea, select { box-sizing: border-box; width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; }
         textarea { font-family: monospace; font-size: 14px; }
 
         /* Action Buttons */
@@ -48,15 +48,10 @@
         #btnGenerate { background-color: #003366; } 
         #btnShare { background-color: #4CAF50; } 
         #btnWord { background-color: #2b5797; }
-        
-        /* Drag & Drop Chips */
-        .player-chip { display: inline-block; background-color: #e7f3fe; border: 1px solid #003366; color: #003366; padding: 4px 8px; border-radius: 15px; margin: 2px; cursor: grab; transition: all 0.2s; font-weight: 500; }
-        .player-chip:hover { background-color: #003366; color: white; }
-        .player-chip:active { cursor: grabbing; }
-        .over { transform: scale(1.1); background-color: #ffd700; border-color: #000; }
+        #btnClear { background-color: #d9534f; color: white; padding: 5px 15px; font-size: 14px; border:none; border-radius: 4px; cursor: pointer; }
 
         /* Resolver */
-        .resolver-box { background-color: #fff3cd; border: 2px solid #ffc107; padding: 20px; margin-bottom: 20px; border-radius: 8px; display: none; }
+        .resolver-box { background-color: #fff3cd; border: 2px solid #ffc107; padding: 20px; margin-top: 20px; border-radius: 8px; display: none; }
         .unknown-item { background: white; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .suggestion-btn { background-color: #17a2b8; color: white; padding: 5px 10px; border:none; border-radius:3px; cursor:pointer;}
         .add-btn { background-color: #28a745; color: white; padding: 5px 10px; border:none; border-radius:3px; cursor:pointer;}
@@ -68,7 +63,15 @@
         td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         .sit-out { background-color: #eef; color: #003366; font-weight: bold; }
+        
+        /* Drag & Drop */
+        .player-chip { display: inline-block; background-color: #e7f3fe; border: 1px solid #003366; color: #003366; padding: 4px 8px; border-radius: 15px; margin: 2px; cursor: grab; transition: all 0.2s; font-weight: 500; }
+        .player-chip:hover { background-color: #003366; color: white; }
+        .player-chip:active { cursor: grabbing; }
+        .over { transform: scale(1.1); background-color: #ffd700; border-color: #000; }
         .drag-hint { background-color: #e7f3fe; border-left: 6px solid #2196F3; margin-bottom: 15px; padding: 10px; font-size: 0.9em; }
+        
+        .error-box { background-color: #ffe6e6; color: #d8000c; padding: 10px; border: 1px solid #d8000c; margin-top: 20px; display: none; }
         #dbStatus { font-size: 0.85em; color: green; font-weight: bold; margin-top: 5px; text-align: right; }
     </style>
 </head>
@@ -110,16 +113,14 @@
             </div>
 
             <div class="col-weekly">
-                <div id="resolverContainer" class="resolver-box">
-                    <div style="font-weight:bold; color:#856404; margin-bottom:10px;">⚠️ Unknown Players Detected</div>
-                    <p style="margin:0 0 10px 0;">Names not found in Bank. Fix typo or Add:</p>
-                    <div id="resolverList"></div>
+                <div style="text-align: right; margin-bottom: 10px;">
+                    <button id="btnClear" onclick="clearWeeklyInputs()">🗑️ Clear Groups</button>
                 </div>
 
                 <div class="group-container">
                     <div class="group-header">Group 1: Early (4:30 - 6:30)</div>
                     <label>Players:</label>
-                    <div class="help-text">Paste names here.</div>
+                    <div class="help-text">Paste names here (e.g. "Alex").</div>
                     <textarea id="playersG1" rows="6" oninput="saveDataToCloud()"></textarea>
                     <label>Courts:</label>
                     <textarea id="courtsG1" rows="1" oninput="saveDataToCloud()">1, 2</textarea>
@@ -141,41 +142,45 @@
             <button id="btnWord" class="action-btn" onclick="downloadWordDoc()">3. Download Word Doc</button>
         </div>
         
+        <div id="errorContainer" class="error-box"></div>
+
+        <div id="resolverContainer" class="resolver-box">
+            <div style="font-weight:bold; color:#856404; margin-bottom:10px;">⚠️ Unknown Players Detected</div>
+            <p style="margin:0 0 10px 0;">Names not found in Bank. Fix typo or Add:</p>
+            <div id="resolverList"></div>
+        </div>
+        
         <div id="output" class="schedule-output"></div>
     </div>
 
     <script type="module">
-        // 1. IMPORT FIREBASE (Using v11 as requested)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-        // 2. CONFIGURATION (From your project)
         const firebaseConfig = {
-apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
-  authDomain: "project-8381867246864635545.firebaseapp.com",
-  databaseURL: "https://project-8381867246864635545-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "project-8381867246864635545",
-  storageBucket: "project-8381867246864635545.firebasestorage.app",
-  messagingSenderId: "531514593264",
-  appId: "1:531514593264:web:5ac9c140c374f63eb99735"
+            apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
+            authDomain: "project-8381867246864635545.firebaseapp.com",
+            databaseURL: "https://project-8381867246864635545-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "project-8381867246864635545",
+            storageBucket: "project-8381867246864635545.firebasestorage.app",
+            messagingSenderId: "531514593264",
+            appId: "1:531514593264:web:5ac9c140c374f63eb99735"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const auth = getAuth(app);
 
-        // --- GLOBAL VARIABLES FOR UI ACCESS ---
         let currentUser = null;
-        let isCloudLoading = false; // Prevent auto-save overwriting while loading
+        let isCloudLoading = false;
 
-        // Expose functions to global window for HTML buttons
         window.login = login;
         window.signup = signup;
         window.logout = logout;
-        window.saveDataToCloud = saveDataToCloud; // Triggered on input change
+        window.saveDataToCloud = saveDataToCloud;
+        window.clearWeeklyInputs = clearWeeklyInputs;
 
-        // --- AUTH LOGIC ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -193,39 +198,23 @@ apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
         async function login() {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
-            try {
-                await signInWithEmailAndPassword(auth, e, p);
-            } catch (error) {
-                showLoginError(error.message);
-            }
+            try { await signInWithEmailAndPassword(auth, e, p); } 
+            catch (error) { document.getElementById('login-msg').innerText = error.message; document.getElementById('login-msg').style.display='block'; }
         }
 
         async function signup() {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
-            try {
-                await createUserWithEmailAndPassword(auth, e, p);
-            } catch (error) {
-                showLoginError(error.message);
-            }
+            try { await createUserWithEmailAndPassword(auth, e, p); }
+            catch (error) { document.getElementById('login-msg').innerText = error.message; document.getElementById('login-msg').style.display='block'; }
         }
 
-        async function logout() {
-            await signOut(auth);
-        }
+        async function logout() { await signOut(auth); }
 
-        function showLoginError(msg) {
-            const el = document.getElementById('login-msg');
-            el.innerText = msg;
-            el.style.display = 'block';
-        }
-
-        // --- DATABASE LOGIC ---
         function loadDataFromCloud() {
             if (!currentUser) return;
             isCloudLoading = true;
             const userRef = ref(db, 'users/' + currentUser.uid);
-            
             onValue(userRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
@@ -236,17 +225,13 @@ apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
                     if (data.c2) document.getElementById('courtsG2').value = data.c2;
                     if (data.date) document.getElementById('sessionDate').value = data.date;
                     window.updateDBStatus();
-                } else {
-                    // Set Defaults if new user
-                    setNextWednesday();
-                }
+                } else { setNextWednesday(); }
                 isCloudLoading = false;
             });
         }
 
         function saveDataToCloud() {
             if (!currentUser || isCloudLoading) return;
-            
             const data = {
                 master: document.getElementById('masterList').value,
                 p1: document.getElementById('playersG1').value,
@@ -255,27 +240,32 @@ apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
                 c2: document.getElementById('courtsG2').value,
                 date: document.getElementById('sessionDate').value
             };
-            
-            // Save to /users/{uid}
             set(ref(db, 'users/' + currentUser.uid), data);
+        }
+
+        function clearWeeklyInputs() {
+            if(confirm("Clear weekly inputs? Master Bank will remain.")) {
+                document.getElementById('playersG1').value = "";
+                document.getElementById('playersG2').value = "";
+                document.getElementById('resolverContainer').style.display = 'none';
+                document.getElementById('output').style.display = 'none';
+                saveDataToCloud();
+            }
         }
 
         function setNextWednesday() {
             const dateInput = document.getElementById('sessionDate');
-            if(dateInput.value) return; // Don't overwrite if exists
+            if(dateInput.value) return; 
             const today = new Date();
-            const dayOfWeek = 3; 
-            let diff = (dayOfWeek + 7 - today.getDay()) % 7;
+            let diff = (3 + 7 - today.getDay()) % 7;
             if (diff === 0) diff = 7; 
             const nextWed = new Date(today);
             nextWed.setDate(today.getDate() + diff);
             dateInput.value = nextWed.toISOString().split('T')[0];
         }
-
     </script>
 
     <script>
-        // --- PARSING & LOOKUP ---
         function getMasterDatabase() {
             const masterText = document.getElementById('masterList').value;
             const db = {};
@@ -302,10 +292,67 @@ apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
             document.getElementById('dbStatus').innerText = `✅ Cloud Synced: ${count} players`;
         }
 
-        // --- PRE-CHECK / RESOLVER ---
+        // --- SMARTER FUZZY MATCHING ---
+        function getSimilarity(s1, s2) {
+            let longer = s1; let shorter = s2;
+            if (s1.length < s2.length) { longer = s2; shorter = s1; }
+            let longerLength = longer.length;
+            if (longerLength == 0) return 1.0;
+            return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+        }
+        function editDistance(s1, s2) {
+            s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
+            let costs = [];
+            for (let i = 0; i <= s1.length; i++) {
+                let lastValue = i;
+                for (let j = 0; j <= s2.length; j++) {
+                    if (i == 0) costs[j] = j;
+                    else {
+                        if (j > 0) {
+                            let newValue = costs[j - 1];
+                            if (s1.charAt(i - 1) != s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                            costs[j - 1] = lastValue;
+                            lastValue = newValue;
+                        }
+                    }
+                }
+                if (i > 0) costs[s2.length] = lastValue;
+            }
+            return costs[s2.length];
+        }
+
+        function findClosestMatch(inputName, dbKeys) {
+            const lowerInput = inputName.toLowerCase();
+            let bestMatch = null;
+            let highestScore = 0;
+
+            dbKeys.forEach(key => {
+                const lowerKey = key.toLowerCase();
+                let score = 0;
+
+                // 1. Starts With
+                if (lowerKey.startsWith(lowerInput)) score = 0.95;
+                // 2. Contains
+                else if (lowerKey.includes(lowerInput)) score = 0.85;
+                // 3. Levenshtein
+                else {
+                    score = getSimilarity(lowerInput, lowerKey);
+                }
+
+                if (score > highestScore) {
+                    highestScore = score;
+                    bestMatch = key;
+                }
+            });
+            // Threshold
+            return highestScore > 0.5 ? bestMatch : null;
+        }
+
+        // --- PRE-CHECK ---
         function startGenerationProcess() {
             document.getElementById('resolverContainer').style.display = 'none';
             document.getElementById('output').style.display = 'none';
+            document.getElementById('errorContainer').style.display = 'none';
 
             const p1 = document.getElementById('playersG1').value;
             const p2 = document.getElementById('playersG2').value;
@@ -327,78 +374,138 @@ apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
             else generateAllSchedules();
         }
 
-        // --- RESOLVER UI ---
         function showResolver(unknowns, db) {
             const list = document.getElementById('resolverList');
             list.innerHTML = "";
             const keys = Object.keys(db);
 
             unknowns.forEach(u => {
-                // Simple fuzzy check
-                let best = null, maxScore = 0;
-                keys.forEach(k => {
-                    const score = getSimilarity(u.name.toLowerCase(), k);
-                    if(score > maxScore) { maxScore = score; best = k; }
-                });
-
-                let suggestion = "";
-                if(best && maxScore > 0.6) {
-                    const correct = db[best].name;
-                    suggestion = `<button class="suggestion-btn" onclick="fixTypo('${u.name}', '${correct}', '${u.id}')">Fix: ${correct}</button>`;
+                const closestKey = findClosestMatch(u.name, keys);
+                let suggestionHtml = "";
+                
+                if (closestKey) {
+                    const properName = db[closestKey].name;
+                    suggestionHtml = `<button class="suggestion-btn" onclick="fixTypo('${u.name}', '${properName}', '${u.id}')">Fix: <strong>${properName}</strong></button> <span style="font-size:0.9em; margin:0 5px;">or</span> `;
                 }
 
                 const div = document.createElement('div');
                 div.className = 'unknown-item';
                 div.innerHTML = `
                     <span style="font-weight:bold; color:#d9534f; min-width:80px;">"${u.name}"</span>
-                    ${suggestion}
-                    <span style="margin:0 5px;">or New:</span>
-                    <input type="number" id="r_${u.name}" placeholder="Rate" step="0.5" style="width:50px; padding:5px;">
-                    <select id="g_${u.name}" style="padding:5px;"><option value="M">M</option><option value="W">W</option></select>
-                    <button class="add-btn" onclick="addToBank('${u.name}')">Add</button>
+                    ${suggestionHtml}
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <input type="number" id="r_${u.name}" placeholder="Rate" step="0.5" style="width:60px; padding:5px;">
+                        <select id="g_${u.name}" style="padding:5px;"><option value="M">M</option><option value="W">W</option></select>
+                        <button class="add-btn" onclick="addToBank('${u.name}')">Add New</button>
+                    </div>
                 `;
                 list.appendChild(div);
             });
             document.getElementById('resolverContainer').style.display = 'block';
         }
 
-        // --- UTILS ---
-        function fixTypo(bad, good, id) {
+        window.fixTypo = function(bad, good, id) {
             const el = document.getElementById(id);
             el.value = el.value.replace(new RegExp(`\\b${bad}\\b`, 'g'), good);
-            saveDataToCloud(); // Push fix to cloud
+            saveDataToCloud(); 
             startGenerationProcess();
         }
 
-        function addToBank(name) {
+        window.addToBank = function(name) {
             const r = document.getElementById('r_'+name).value;
             const g = document.getElementById('g_'+name).value;
             if(!r) return alert("Enter rating");
-            
             const master = document.getElementById('masterList');
             master.value += `\n${name}, ${r}, ${g}`;
-            saveDataToCloud(); // Push new player to cloud
+            saveDataToCloud(); 
             startGenerationProcess();
         }
 
-        function getSimilarity(s1, s2) { /* Levenshtein simplified for brevity */
-            let l = s1.length > s2.length ? s1 : s2;
-            let s = s1.length > s2.length ? s2 : s1;
-            if(l.length==0) return 1.0;
-            let costs = []; 
-            for(let i=0;i<=s.length;i++) costs[i]=i;
-            for(let i=1;i<=l.length;i++){
-                let nw = costs[0]; costs[0]=i;
-                for(let j=1;j<=s.length;j++){
-                    let c = (l[i-1] == s[j-1] ? 0 : 1);
-                    let min = Math.min(costs[j]+1, costs[j-1]+1, nw+c);
-                    nw = costs[j]; costs[j] = min;
-                }
-            }
-            return (l.length - costs[s.length]) / l.length;
+        // --- SCHEDULING (Logic Retained) ---
+        function parse(txt, db) {
+            const res = [];
+            txt.split(/[\r\n,]+/).forEach(t => {
+                t = t.trim();
+                if(!t) return;
+                if(db[t.toLowerCase()]) res.push(db[t.toLowerCase()]);
+                else if (/\d/.test(t)) { /* Manual entry skip */ }
+                else res.push({name: t+" (?)", ability:3, gender:'U'}); 
+            });
+            return res;
+        }
+        function parseC(t) { return t.replace(/[\r\n]+/g, ',').split(',').map(c=>c.trim()).filter(c=>c.length>0); }
+        function shuffle(a) { return a.sort(()=>Math.random()-0.5); }
+        function getPairKey(a,b) { return [a.name, b.name].sort().join('|'); }
+
+        function schedule(players, courts, times) {
+            if(!players.length) return null;
+            const cap = courts.length * 4;
+            
+            const sel1 = determinePool([...players], cap);
+            const res1 = createMatches(sel1.playing, courts, new Set());
+            res1.sitOut = sel1.sitting;
+            
+            const hist = new Set();
+            res1.matches.forEach(m => { hist.add(getPairKey(m[0], m[1])); hist.add(getPairKey(m[2], m[3])); });
+
+            const mustPlay = [...res1.sitOut];
+            const pNames = res1.matches.flat().map(p=>p.name);
+            const candidates = players.filter(p=>pNames.includes(p.name));
+            
+            const sel2 = { playing: [...mustPlay], sitting: [] };
+            const shufCand = shuffle(candidates);
+            while(sel2.playing.length < cap && shufCand.length > 0) sel2.playing.push(shufCand.pop());
+            sel2.sitting = shufCand;
+            
+            const res2 = createMatches(sel2.playing, courts, hist);
+            res2.sitOut = sel2.sitting;
+
+            return { t1: times[0], r1: res1, t2: times[1], r2: res2 };
         }
 
-        // --- SCHEDULING LOGIC (Same as v9) ---
+        function determinePool(pool, cap) {
+            if(pool.length <= cap) return {playing: pool, sitting: []};
+            const needed = pool.length - cap;
+            const fives = shuffle(pool.filter(p=>p.ability>=5));
+            const others = shuffle(pool.filter(p=>p.ability<5)).sort((a,b)=>b.ability-a.ability);
+            
+            const sit = [];
+            while(sit.length < needed && fives.length) sit.push(fives.pop());
+            while(sit.length < needed && others.length) sit.push(others.shift());
+            return { playing: [...fives, ...others], sitting: sit };
+        }
+
+        function createMatches(pool, courts, hist) {
+            pool.sort((a,b)=>b.ability-a.ability); 
+            const matches = [];
+            let temp = [...pool];
+            
+            for(let i=0; i<courts.length; i++) {
+                if(temp.length < 4) break;
+                let p1 = temp.shift(), p2 = temp.shift(), p3 = temp.shift(), p4 = temp.shift();
+                
+                const combos = [[[0,1],[2,3]], [[0,2],[1,3]], [[0,3],[1,2]]];
+                let bestSc = -9999, bestC = null;
+                const set = [p1,p2,p3,p4];
+
+                combos.forEach(c => {
+                    const t1a=set[c[0][0]], t1b=set[c[0][1]], t2a=set[c[1][0]], t2b=set[c[1][1]];
+                    let sc = 0;
+                    if(hist.has(getPairKey(t1a,t1b))) sc -= 10000;
+                    if(hist.has(getPairKey(t2a,t2b))) sc -= 10000;
+                    
+                    const m1 = (t1a.gender!=t1b.gender && t1a.gender!='U' && t1b.gender!='U');
+                    const m2 = (t2a.gender!=t2b.gender && t2a.gender!='U' && t2b.gender!='U');
+                    if(m1 && m2) sc += 500; else if(m1||m2) sc+=50;
+                    
+                    sc -= Math.abs((t1a.ability+t1b.ability)-(t2a.ability+t2b.ability)) * 20;
+                    if(sc > bestSc) { bestSc = sc; bestC = [t1a,t1b,t2a,t2b]; }
+                });
+                matches.push(bestC);
+            }
+            return { matches: matches, sitOut: [] };
+        }
+
         function generateAllSchedules() {
             const p1 = document.getElementById('playersG1').value;
             const c1 = document.getElementById('courtsG1').value;
@@ -425,94 +532,6 @@ apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
             enableDrag();
         }
 
-        function parse(txt, db) {
-            const res = [];
-            txt.split(/[\r\n,]+/).forEach(t => {
-                t = t.trim();
-                if(!t) return;
-                if(db[t.toLowerCase()]) res.push(db[t.toLowerCase()]);
-                else if (/\d/.test(t)) {/* Manual entry ignored for lookup logic simplicity here */}
-                else res.push({name: t+" (?)", ability:3, gender:'U'}); 
-            });
-            return res;
-        }
-        function parseC(t) { return t.replace(/[\r\n]+/g, ',').split(',').map(c=>c.trim()).filter(c=>c.length>0); }
-        function shuffle(a) { return a.sort(()=>Math.random()-0.5); }
-        function getPairKey(a,b) { return [a.name, b.name].sort().join('|'); }
-
-        function schedule(players, courts, times) {
-            if(!players.length) return null;
-            const cap = courts.length * 4;
-            
-            // H1
-            const sel1 = determinePool([...players], cap);
-            const res1 = createMatches(sel1.playing, courts, new Set());
-            res1.sitOut = sel1.sitting;
-            
-            const hist = new Set();
-            res1.matches.forEach(m => { hist.add(getPairKey(m[0], m[1])); hist.add(getPairKey(m[2], m[3])); });
-
-            // H2
-            const mustPlay = [...res1.sitOut];
-            const pNames = res1.matches.flat().map(p=>p.name);
-            const candidates = players.filter(p=>pNames.includes(p.name));
-            
-            const sel2 = { playing: [...mustPlay], sitting: [] };
-            const shufCand = shuffle(candidates);
-            while(sel2.playing.length < cap && shufCand.length > 0) sel2.playing.push(shufCand.pop());
-            sel2.sitting = shufCand;
-            
-            const res2 = createMatches(sel2.playing, courts, hist);
-            res2.sitOut = sel2.sitting;
-
-            return { t1: times[0], r1: res1, t2: times[1], r2: res2 };
-        }
-
-        function determinePool(pool, cap) {
-            if(pool.length <= cap) return {playing: pool, sitting: []};
-            const needed = pool.length - cap;
-            // Robin Hood Logic: 5s sit first
-            const fives = shuffle(pool.filter(p=>p.ability>=5));
-            const others = shuffle(pool.filter(p=>p.ability<5)).sort((a,b)=>b.ability-a.ability);
-            
-            const sit = [];
-            while(sit.length < needed && fives.length) sit.push(fives.pop());
-            while(sit.length < needed && others.length) sit.push(others.shift());
-            return { playing: [...fives, ...others], sitting: sit };
-        }
-
-        function createMatches(pool, courts, hist) {
-            pool.sort((a,b)=>b.ability-a.ability); // Sort by ability
-            const matches = [];
-            let temp = [...pool];
-            
-            for(let i=0; i<courts.length; i++) {
-                if(temp.length < 4) break;
-                let p1 = temp.shift(), p2 = temp.shift(), p3 = temp.shift(), p4 = temp.shift();
-                
-                // Try combos
-                const combos = [[[0,1],[2,3]], [[0,2],[1,3]], [[0,3],[1,2]]];
-                let bestSc = -9999, bestC = null;
-                const set = [p1,p2,p3,p4];
-
-                combos.forEach(c => {
-                    const t1a=set[c[0][0]], t1b=set[c[0][1]], t2a=set[c[1][0]], t2b=set[c[1][1]];
-                    let sc = 0;
-                    if(hist.has(getPairKey(t1a,t1b))) sc -= 10000;
-                    if(hist.has(getPairKey(t2a,t2b))) sc -= 10000;
-                    
-                    const m1 = (t1a.gender!=t1b.gender && t1a.gender!='U' && t1b.gender!='U');
-                    const m2 = (t2a.gender!=t2b.gender && t2a.gender!='U' && t2b.gender!='U');
-                    if(m1 && m2) sc += 500; else if(m1||m2) sc+=50;
-                    
-                    sc -= Math.abs((t1a.ability+t1b.ability)-(t2a.ability+t2b.ability)) * 20;
-                    if(sc > bestSc) { bestSc = sc; bestC = [t1a,t1b,t2a,t2b]; }
-                });
-                matches.push(bestC);
-            }
-            return { matches, sitOut: [] };
-        }
-
         function renderGroup(title, d, cNames) {
             let h = `<h2>${title}</h2>`;
             const tbl = (time, r) => {
@@ -530,7 +549,6 @@ apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
 
         function chip(p) { return `<span class="player-chip" draggable="true">${p.name}</span>`; }
 
-        // --- DRAG/DROP & EXPORT (Same logic) ---
         function enableDrag() {
             let dragSrc = null;
             document.querySelectorAll('.player-chip').forEach(item => {
