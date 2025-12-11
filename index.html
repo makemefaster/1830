@@ -5,112 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Queen's Club Tennis Scheduler</title>
     <style>
-        /* BASE & RESET */
-        body { 
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
-            background-color: #f0f2f5; 
-            margin: 0; 
-            padding: 20px; 
-            color: #333; 
-        }
-
-        /* --- LAYOUT CONTAINERS --- */
-        .main-wrapper { max-width: 1100px; margin: 0 auto; }
+        /* Queen's Club Style - Blue & White */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 1100px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; color: #333; }
         
-        /* The "Card" Look for Schedules */
-        .schedule-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            overflow: hidden;
-            margin-top: 20px;
-            display: none; /* Hidden by default */
-        }
-        
-        .schedule-header {
-            background-color: #003366; /* Queen's Navy */
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 4px solid #bfa15f; /* Queen's Gold */
-        }
-        
-        .schedule-header h2 { margin: 0; font-size: 1.8em; font-weight: 400; }
-        .schedule-body { padding: 30px; }
-
         /* MODES UTILITY */
         .admin-only { display: block; } 
         .public-only { display: none; } 
 
-        /* PUBLIC VIEW MODE */
+        /* When body has class 'public-view', flip the visibility */
         body.public-view .admin-only { display: none !important; }
         body.public-view .public-only { display: block !important; }
-        body.public-view .schedule-card { display: block !important; margin: 40px auto; max-width: 800px; }
 
         /* Login Overlay */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #003366; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .login-box { background: white; padding: 40px; border-radius: 8px; text-align: center; width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .login-box { background: white; padding: 40px; border-radius: 8px; text-align: center; width: 300px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .login-box h2 { color: #003366; margin-top: 0; }
         .login-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .login-box button { width: 100%; padding: 10px; background: #003366; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .login-box button:hover { background: #002244; }
         .login-error { color: red; font-size: 0.9em; margin-top: 10px; display: none; }
 
-        /* Header (Admin) */
+        /* Main App Layout */
+        #app-container { display: none; }
+        
+        /* Header */
         .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #003366; padding-bottom: 10px; margin-bottom: 20px; }
         h1 { color: #003366; margin: 0; font-size: 1.8em; }
         .user-controls { display: flex; align-items: center; gap: 15px; }
         .user-email { font-size: 0.9em; color: #666; font-weight: bold; }
         .logout-btn { padding: 5px 10px; background: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
 
-        /* Input Areas */
+        /* Public Date Header Style */
+        .public-date-display {
+            text-align: center;
+            color: #003366;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #003366;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Published List Dashboard */
+        #published-dashboard { background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ccc; }
+        .pub-item { background: white; padding: 10px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .pub-link a { color: #003366; font-weight: bold; text-decoration: none; }
+        .pub-link a:hover { text-decoration: underline; }
+        .del-btn { background: #d9534f; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+
+        /* Columns */
         .container-flex { display: flex; gap: 20px; flex-wrap: wrap; }
         .col-master { flex: 1; min-width: 300px; }
         .col-weekly { flex: 2; min-width: 400px; }
 
-        .group-container { background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
+        .group-container { background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .group-header { background-color: #003366; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; font-weight: 500; }
         .master-header { background-color: #444; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; font-weight: 500; }
 
         label { font-weight: bold; display: block; margin-top: 15px; color: #003366; }
         .help-text { font-size: 0.85em; color: #666; margin-bottom: 5px; font-style: italic; }
+        
         input[type="date"], textarea, select { box-sizing: border-box; width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; }
         textarea { font-family: monospace; font-size: 14px; }
 
-        /* Buttons */
+        /* Action Buttons */
         .button-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-        .action-btn { flex: 1; padding: 12px; font-weight: bold; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: transform 0.1s; }
-        .action-btn:hover { transform: translateY(-1px); }
+        .action-btn { flex: 1; padding: 12px; font-weight: bold; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
         #btnGenerate { background-color: #003366; } 
         #btnPublish { background-color: #e65100; } 
         #btnWord { background-color: #2b5797; }
         #btnClear { background-color: #d9534f; color: white; padding: 5px 15px; font-size: 14px; border:none; border-radius: 4px; cursor: pointer; }
-
-        /* Schedule Tables (Shared Styles) */
-        table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
-        th { text-align: left; font-size: 12px; color: #888; text-transform: uppercase; padding: 8px 12px; border-bottom: 1px solid #ddd; }
-        td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 15px; vertical-align: middle; }
-        tr:last-child td { border-bottom: none; }
-        td:first-child { font-weight: bold; color: #003366; width: 15%; }
-        
-        h2 { color: #003366; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; margin-bottom: 15px; }
-        h3 { font-size: 14px; text-transform: uppercase; color: #666; margin-bottom: 10px; margin-top: 20px; letter-spacing: 1px; }
-
-        .sit-out { background-color: #f8f9fa; color: #555; font-style: italic; border-radius: 6px; font-size: 14px; }
-
-        /* Chips & Dragging */
-        .player-chip { display: inline-block; background-color: #e7f3fe; border: 1px solid #003366; color: #003366; padding: 4px 8px; border-radius: 15px; margin: 2px; cursor: grab; font-weight: 500; }
-        .player-chip:hover { background-color: #003366; color: white; }
-        .player-chip:active { cursor: grabbing; }
-        .over { transform: scale(1.1); background-color: #ffd700; border-color: #000; }
-        .drag-hint { background-color: #e7f3fe; border-left: 6px solid #2196F3; margin-bottom: 15px; padding: 10px; font-size: 0.9em; }
-
-        /* Tools */
-        .error-box { background-color: #ffe6e6; color: #d8000c; padding: 10px; border: 1px solid #d8000c; margin-top: 20px; display: none; }
-        #dbStatus { font-size: 0.85em; color: green; font-weight: bold; margin-top: 5px; text-align: right; }
-        #published-dashboard { background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ccc; }
-        .pub-item { background: white; padding: 10px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
-        .del-btn { background: #d9534f; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
 
         /* Resolver */
         .resolver-box { background-color: #fff3cd; border: 2px solid #ffc107; padding: 20px; margin-top: 20px; border-radius: 8px; display: none; }
@@ -118,7 +85,47 @@
         .suggestion-btn { background-color: #17a2b8; color: white; padding: 5px 10px; border:none; border-radius:3px; cursor:pointer;}
         .add-btn { background-color: #28a745; color: white; padding: 5px 10px; border:none; border-radius:3px; cursor:pointer;}
 
-        /* Modal */
+        /* Output & Public View */
+        .schedule-output { background: white; padding: 20px; margin-top: 20px; border: 1px solid #ddd; display: none; }
+        /* Force display in public view */
+        body.public-view .schedule-output { display: block !important; border: none; padding: 0; margin-top: 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #003366; font-size: 0.9em; }
+        th { background-color: #003366; color: white; padding: 8px; text-align: center; }
+        td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .sit-out { background-color: #eef; color: #003366; font-weight: bold; }
+        
+        /* Drag & Drop Pills (iPad Style) */
+        .player-chip { 
+            display: inline-block; 
+            background-color: #e7f3fe; 
+            border: 1px solid #003366; 
+            color: #003366; 
+            padding: 6px 12px; /* Pill Shape */
+            border-radius: 20px; 
+            margin: 2px; 
+            cursor: grab; 
+            transition: all 0.2s; 
+            font-weight: 500; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .player-chip:hover { background-color: #003366; color: white; }
+        .player-chip:active { cursor: grabbing; }
+        .over { transform: scale(1.1); background-color: #ffd700; border-color: #000; }
+        .drag-hint { background-color: #e7f3fe; border-left: 6px solid #2196F3; margin-bottom: 15px; padding: 10px; font-size: 0.9em; }
+        
+        /* Share Buttons (Public) */
+        .share-controls { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin-left: auto; margin-right: auto; }
+        .share-btn { display: block; width: 100%; padding: 15px; text-align: center; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 1.1em; transition: opacity 0.2s; }
+        .share-btn:hover { opacity: 0.9; }
+        .share-wa { background-color: #25D366; }
+        .share-email { background-color: #555; }
+
+        .error-box { background-color: #ffe6e6; color: #d8000c; padding: 10px; border: 1px solid #d8000c; margin-top: 20px; display: none; }
+        #dbStatus { font-size: 0.85em; color: green; font-weight: bold; margin-top: 5px; text-align: right; }
+        
+        /* MODAL */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; text-align: center; border-radius: 8px; }
         .modal-link { background: #eee; padding: 10px; border: 1px dashed #ccc; word-break: break-all; margin: 15px 0; font-family: monospace; }
@@ -130,7 +137,7 @@
     <div id="login-overlay" style="display:none;">
         <div class="login-box">
             <h2>🎾 Tennis Planner</h2>
-            <p style="font-size:0.9em; color:#666;">Log in to manage.</p>
+            <p style="font-size:0.9em; color:#666;">Please log in to manage schedules.</p>
             <input type="email" id="email" placeholder="Email Address">
             <input type="password" id="password" placeholder="Password">
             <button onclick="login()">Log In</button>
@@ -138,82 +145,79 @@
         </div>
     </div>
 
-    <div class="main-wrapper">
-        <div id="app-container">
-            
-            <div class="header-row admin-only">
-                <h1>🎾 Wednesday Staggered Schedule</h1>
-                <div class="user-controls">
-                    <span id="user-display" class="user-email"></span>
-                    <button class="logout-btn" onclick="logout()">Sign Out</button>
-                </div>
+    <div id="app-container">
+        
+        <div class="header-row admin-only">
+            <h1>🎾 Wednesday Staggered Schedule</h1>
+            <div class="user-controls">
+                <span id="user-display" class="user-email"></span>
+                <button class="logout-btn" onclick="logout()">Sign Out</button>
             </div>
-
-            <div id="published-dashboard" class="admin-only" style="display:none;">
-                <strong>📡 Published Schedules</strong>
-                <div id="publishedList" style="margin-top:10px;">Loading...</div>
-            </div>
-
-            <div class="admin-only">
-                <label for="sessionDate">Session Date:</label>
-                <input type="date" id="sessionDate" onchange="saveDataToCloud()">
-
-                <div class="container-flex" style="margin-top:20px;">
-                    <div class="col-master">
-                        <div class="group-container" style="background-color: #f9f9f9;">
-                            <div class="master-header">📂 Master Player Bank</div>
-                            <div class="help-text">Format: <strong>Name, Rating, M/W</strong></div>
-                            <textarea id="masterList" rows="30" oninput="saveDataToCloud(); updateDBStatus();"></textarea>
-                            <div id="dbStatus"></div>
-                        </div>
-                    </div>
-
-                    <div class="col-weekly">
-                        <div style="text-align: right; margin-bottom: 10px;">
-                            <button id="btnClear" onclick="clearWeeklyInputs()">🗑️ Clear Groups</button>
-                        </div>
-                        <div class="group-container">
-                            <div class="group-header">Group 1: Early (4:30 - 6:30)</div>
-                            <label>Players:</label>
-                            <textarea id="playersG1" rows="6" oninput="saveDataToCloud()"></textarea>
-                            <label>Courts:</label>
-                            <textarea id="courtsG1" rows="1" oninput="saveDataToCloud()">1, 2</textarea>
-                        </div>
-                        <div class="group-container">
-                            <div class="group-header">Group 2: Late (5:30 - 7:30)</div>
-                            <label>Players:</label>
-                            <textarea id="playersG2" rows="10" oninput="saveDataToCloud()"></textarea>
-                            <label>Courts:</label>
-                            <textarea id="courtsG2" rows="1" oninput="saveDataToCloud()">3, 4, 5, 6</textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="button-row">
-                    <button id="btnGenerate" class="action-btn" onclick="startGenerationProcess()">1. Generate</button>
-                    <button id="btnPublish" class="action-btn" onclick="publishSchedule()">2. Publish to Web 🌐</button>
-                    <button id="btnWord" class="action-btn" onclick="downloadWordDoc()">3. Download Word</button>
-                </div>
-                
-                <div id="errorContainer" class="error-box"></div>
-                <div id="resolverContainer" class="resolver-box">
-                    <div style="font-weight:bold; color:#856404; margin-bottom:10px;">⚠️ Unknown Players Detected</div>
-                    <div id="resolverList"></div>
-                </div>
-            </div>
-            
-            <div id="schedule-container" class="schedule-card">
-                <div class="schedule-header">
-                    <h2>Order of Play</h2>
-                    <div id="publicDateDisplay" style="font-size: 1.2em; opacity: 0.9; margin-top: 5px;"></div>
-                </div>
-                <div id="output" class="schedule-body"></div>
-                <div class="public-only" style="text-align:center; padding: 20px; background:#fafafa; color:#999; font-size:0.8em; border-top:1px solid #eee;">
-                    Tennis Scheduler by MakeMeFaster.com
-                </div>
-            </div>
-
         </div>
+
+        <div class="public-only">
+            <h1 id="publicDateHeader" class="public-date-display"></h1>
+        </div>
+
+        <div id="published-dashboard" class="admin-only" style="display:none;">
+            <strong>📡 Published Schedules (Active Links)</strong>
+            <div id="publishedList" style="margin-top:10px;">Loading...</div>
+        </div>
+
+        <div class="admin-only">
+            <label for="sessionDate">Session Date:</label>
+            <input type="date" id="sessionDate" onchange="saveDataToCloud()">
+
+            <div class="container-flex" style="margin-top:20px;">
+                <div class="col-master">
+                    <div class="group-container" style="background-color: #f9f9f9;">
+                        <div class="master-header">📂 Master Player Bank</div>
+                        <div class="help-text">Format: <strong>Name, Rating, M/W</strong></div>
+                        <textarea id="masterList" rows="30" oninput="saveDataToCloud(); updateDBStatus();"></textarea>
+                        <div id="dbStatus"></div>
+                    </div>
+                </div>
+
+                <div class="col-weekly">
+                    <div style="text-align: right; margin-bottom: 10px;">
+                        <button id="btnClear" onclick="clearWeeklyInputs()">🗑️ Clear Groups</button>
+                    </div>
+
+                    <div class="group-container">
+                        <div class="group-header">Group 1: Early (4:30 - 6:30)</div>
+                        <label>Players:</label>
+                        <textarea id="playersG1" rows="6" oninput="saveDataToCloud()"></textarea>
+                        <label>Courts:</label>
+                        <textarea id="courtsG1" rows="1" oninput="saveDataToCloud()">1, 2</textarea>
+                    </div>
+
+                    <div class="group-container">
+                        <div class="group-header">Group 2: Late (5:30 - 7:30)</div>
+                        <label>Players:</label>
+                        <textarea id="playersG2" rows="10" oninput="saveDataToCloud()"></textarea>
+                        <label>Courts:</label>
+                        <textarea id="courtsG2" rows="1" oninput="saveDataToCloud()">3, 4, 5, 6</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button id="btnGenerate" class="action-btn" onclick="startGenerationProcess()">1. Generate</button>
+                <button id="btnPublish" class="action-btn" onclick="publishSchedule()">2. Publish to Web 🌐</button>
+                <button id="btnWord" class="action-btn" onclick="downloadWordDoc()">3. Download Word</button>
+            </div>
+            
+            <div id="errorContainer" class="error-box"></div>
+
+            <div id="resolverContainer" class="resolver-box">
+                <div style="font-weight:bold; color:#856404; margin-bottom:10px;">⚠️ Unknown Players Detected</div>
+                <div id="resolverList"></div>
+            </div>
+        </div>
+        
+        <div id="output" class="schedule-output"></div>
+
+        <div id="publicShareButtons" class="public-only share-controls"></div>
     </div>
 
     <div id="publishModal" class="modal">
@@ -231,6 +235,7 @@
         import { getDatabase, ref, set, push, remove, onValue, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
+        // --- YOUR CONFIG (PASTED) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
             authDomain: "project-8381867246864635545.firebaseapp.com",
@@ -255,15 +260,12 @@
         window.publishSchedule = publishSchedule;
         window.deleteSchedule = deleteSchedule;
         window.copyLink = copyLink;
-        window.openShareView = openShareView;
-        window.downloadWordDoc = downloadWordDoc;
 
         // --- ROUTER ---
         const urlParams = new URLSearchParams(window.location.search);
         const publicId = urlParams.get('id');
 
         if (publicId) {
-            // PUBLIC MODE
             document.body.classList.add('public-view');
             document.getElementById('app-container').style.display = 'block';
             
@@ -274,19 +276,32 @@
                     const dateObj = new Date(data.date);
                     const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                     
-                    document.getElementById('publicDateDisplay').innerText = niceDate;
+                    document.getElementById('publicDateHeader').innerText = niceDate;
                     document.getElementById('output').innerHTML = data.html;
-                    document.getElementById('schedule-container').style.display = 'block';
+                    document.getElementById('output').style.display = 'block';
                     
-                    // Disable interactivity
+                    // Disable interactivity for public
                     let chips = document.querySelectorAll('.player-chip');
-                    chips.forEach(c => { c.draggable = false; c.style.cursor = 'default'; });
+                    chips.forEach(c => { 
+                        c.draggable = false; 
+                        c.style.cursor = 'default'; 
+                    });
+
+                    // INJECT SOCIAL BUTTONS
+                    const shareText = encodeURIComponent(`🎾 Order of Play for ${niceDate}: ${window.location.href}`);
+                    const waLink = `https://wa.me/?text=${shareText}`;
+                    const mailLink = `mailto:?subject=Tennis Order of Play&body=${shareText}`;
+                    
+                    document.getElementById('publicShareButtons').innerHTML = `
+                        <a href="${waLink}" target="_blank" class="share-btn share-wa">Share via WhatsApp 💬</a>
+                        <a href="${mailLink}" class="share-btn share-email">Share via Email ✉️</a>
+                    `;
+
                 } else {
-                    document.getElementById('app-container').innerHTML = "<h2 style='text-align:center; margin-top:50px; color:#666;'>Schedule not found.</h2>";
+                    document.getElementById('app-container').innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Schedule not found.</h2>";
                 }
             });
         } else {
-            // ADMIN MODE
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     currentUser = user;
@@ -350,7 +365,7 @@
                 document.getElementById('playersG1').value = "";
                 document.getElementById('playersG2').value = "";
                 document.getElementById('resolverContainer').style.display = 'none';
-                document.getElementById('schedule-container').style.display = 'none';
+                document.getElementById('output').style.display = 'none';
                 saveDataToCloud();
             }
         }
@@ -366,28 +381,37 @@
             dateInput.value = nextWed.toISOString().split('T')[0];
         }
 
+        // --- UPDATED PUBLISH LOGIC WITH CONFLICT CHECK ---
         async function publishSchedule() {
             const outBox = document.getElementById('output');
-            if(document.getElementById('schedule-container').style.display === 'none') return alert("Generate first.");
+            if(outBox.style.display === 'none') return alert("Generate first.");
             
             const dateStr = document.getElementById('sessionDate').value;
             const dateObj = new Date(dateStr);
             const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
+            // 1. Check for conflict
             const q = query(ref(db, 'public_schedules'), orderByChild('date'), equalTo(dateStr));
             const snapshot = await get(q);
 
             let targetRef;
+            
             if (snapshot.exists()) {
-                if(!confirm(`⚠️ A schedule for ${niceDate} ALREADY exists.\n\nClick OK to OVERWRITE it (keeps the same link).\nClick Cancel to change the date.`)) { return; }
+                if(!confirm(`⚠️ A schedule for ${niceDate} ALREADY exists.\n\nClick OK to OVERWRITE it (keeps the same link).\nClick Cancel to change the date.`)) {
+                    return; // Stop
+                }
+                // Overwrite the existing one
                 const existingKey = Object.keys(snapshot.val())[0];
                 targetRef = ref(db, 'public_schedules/' + existingKey);
             } else {
+                // Create new
                 targetRef = push(ref(db, 'public_schedules'));
             }
 
+            // 2. Prepare HTML
             let cleanHTML = outBox.innerHTML.replace(/draggable="true"/g, "").replace(/cursor: grab;/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
 
+            // 3. Save
             set(targetRef, { 
                 date: dateStr, 
                 html: cleanHTML, 
@@ -409,12 +433,9 @@
                     const data = child.val();
                     const key = child.key;
                     const url = window.location.href.split('?')[0] + "?id=" + key;
-                    const dateObj = new Date(data.date);
-                    const niceDate = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-                    
                     const div = document.createElement('div');
                     div.className = 'pub-item';
-                    div.innerHTML = `<div class="pub-link">📅 ${niceDate} <br><a href="${url}" target="_blank" style="font-size:0.8em; color:#666;">${url}</a></div><button class="del-btn" onclick="deleteSchedule('${key}')">Delete</button>`;
+                    div.innerHTML = `<div class="pub-link">📅 ${data.date} <br><a href="${url}" target="_blank" style="font-size:0.8em; color:#666;">${url}</a></div><button class="del-btn" onclick="deleteSchedule('${key}')">Delete</button>`;
                     list.appendChild(div);
                 });
             });
@@ -427,53 +448,6 @@
         function copyLink() {
             const text = document.getElementById('publishLink').innerText;
             navigator.clipboard.writeText(text).then(() => alert("Copied!"));
-        }
-
-        // --- PREMIUM SHARE VIEW ---
-        function openShareView() {
-            const outBox = document.getElementById('output');
-            if(document.getElementById('schedule-container').style.display === 'none') return alert("Generate first.");
-            
-            let cleanHTML = outBox.innerHTML
-                .replace(/draggable="true"/g, "")
-                .replace(/cursor: grab;/g, "")
-                .replace(/<div class="drag-hint">.*?<\/div>/, "");
-
-            const dateVal = document.getElementById('sessionDate').value;
-            const dateObj = new Date(dateVal);
-            const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
-            const win = window.open("", "_blank");
-            win.document.write(`
-                <!DOCTYPE html><html><head><title>Order of Play - ${niceDate}</title>
-                <style>
-                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 40px 20px; color: #1a1a1a; -webkit-print-color-adjust: exact; }
-                    .container { max-width: 800px; margin: 0 auto; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; }
-                    .header { background-color: #003366; color: white; padding: 30px; text-align: center; border-bottom: 4px solid #bfa15f; }
-                    .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
-                    .header h2 { margin: 10px 0 0 0; font-size: 18px; font-weight: 400; opacity: 0.9; }
-                    .content { padding: 40px; }
-                    h2 { color: #003366; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 30px; margin-bottom: 15px; }
-                    h2:first-child { margin-top: 0; }
-                    h3 { font-size: 14px; text-transform: uppercase; color: #666; margin-bottom: 10px; margin-top: 20px; letter-spacing: 1px; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    th { text-align: left; font-size: 12px; color: #888; text-transform: uppercase; padding: 8px 12px; border-bottom: 1px solid #ddd; }
-                    td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
-                    tr:last-child td { border-bottom: none; }
-                    td:first-child { font-weight: bold; color: #003366; width: 15%; }
-                    .player-chip { display: inline-block; padding: 0; font-weight: 500; color: #333; }
-                    .sit-out { background-color: #f8f9fa; color: #555; font-style: italic; border-radius: 6px; font-size: 14px; }
-                    .footer { text-align: center; padding: 20px; font-size: 12px; color: #999; background: #fafafa; border-top: 1px solid #eee; }
-                    .no-print { text-align: center; margin-top: 30px; }
-                    button { background-color: #003366; color: white; border: none; padding: 12px 25px; border-radius: 25px; font-size: 14px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,51,102,0.2); transition: transform 0.1s; }
-                    button:hover { transform: translateY(-1px); }
-                    @media print { body { background: white; padding: 0; } .container { box-shadow: none; max-width: 100%; width: 100%; } .no-print { display: none; } .header { -webkit-print-color-adjust: exact; } }
-                </style></head><body>
-                <div class="container"><div class="header"><h1>Order of Play</h1><h2>${niceDate}</h2></div><div class="content">${cleanHTML}</div><div class="footer">Tennis Scheduler by MakeMeFaster.com</div></div>
-                <div class="no-print"><button onclick="window.print()">🖨️ Print / Save as PDF</button></div>
-                </body></html>
-            `);
-            win.document.close();
         }
     </script>
 
@@ -551,7 +525,7 @@
         // --- PRE-CHECK ---
         function startGenerationProcess() {
             document.getElementById('resolverContainer').style.display = 'none';
-            document.getElementById('schedule-container').style.display = 'none';
+            document.getElementById('output').style.display = 'none';
             document.getElementById('errorContainer').style.display = 'none';
 
             const p1 = document.getElementById('playersG1').value;
@@ -679,39 +653,49 @@
             const players2 = parse(p2, db);
             const courts2 = parseC(c2);
 
-            // 1. HOUR 1
+            // 1. HOUR 1 (4:30 - 5:30): GROUP 1 ONLY
             const cap1 = courts1.length * 4;
             const sel1 = determinePool([...players1], cap1);
             const res1 = createMatches(sel1.playing, courts1, new Set());
             res1.sitOut = sel1.sitting;
             
+            // Track History
             const hist = new Set();
             res1.matches.forEach(m => { hist.add(getPairKey(m[0], m[1])); hist.add(getPairKey(m[2], m[3])); });
 
-            // 2. MIXER HOUR
+            // 2. MIXER HOUR (5:30 - 6:30): GROUP 1 + GROUP 2
+            // Pool = G1 (everyone) + G2 (everyone)
+            // Note: Even G1 sitters from H1 are now in the mix
+            // But we must prioritize G1 sitters to play if possible
             const allMixerPlayers = [...players1, ...players2];
             const allMixerCourts = [...courts1, ...courts2];
             const capMix = allMixerCourts.length * 4;
 
+            // Prioritize: G1 Sitters > Others
             const g1Sitters = [...res1.sitOut];
             const others = allMixerPlayers.filter(p => !g1Sitters.includes(p));
             
+            // Fill play pool
             let playingMix = [...g1Sitters];
             let sittingMix = [];
             
+            // Add others until full
             const neededMix = capMix - playingMix.length;
-            const selectionMix = determinePool(others, neededMix); 
+            const selectionMix = determinePool(others, neededMix); // This will sit 5s from the "others" group first
             playingMix = [...playingMix, ...selectionMix.playing];
             sittingMix = selectionMix.sitting;
 
             const resMix = createMatches(playingMix, allMixerCourts, hist);
             resMix.sitOut = sittingMix;
 
+            // Update History
             resMix.matches.forEach(m => { hist.add(getPairKey(m[0], m[1])); hist.add(getPairKey(m[2], m[3])); });
 
-            // 3. HOUR 3
+            // 3. HOUR 3 (6:30 - 7:30): GROUP 2 ONLY
             const cap3 = courts2.length * 4;
-            const g2SittersMix = sittingMix.filter(p => players2.includes(p)); 
+            
+            // Logic: G2 players who sat out in Mixer MUST play now
+            const g2SittersMix = sittingMix.filter(p => players2.includes(p)); // Only care about G2 sitters
             const g2Others = players2.filter(p => !g2SittersMix.includes(p));
 
             let playing3 = [...g2SittersMix];
@@ -734,7 +718,7 @@
 
             const out = document.getElementById('output');
             out.innerHTML = h;
-            document.getElementById('schedule-container').style.display = 'block';
+            out.style.display = 'block';
             enableDrag();
         }
 
@@ -760,10 +744,10 @@
         }
 
         function downloadWordDoc() {
-            const outBox = document.getElementById('output');
-            if(document.getElementById('schedule-container').style.display === 'none') return alert("Generate first.");
-            let cleanHTML = outBox.innerHTML.replace(/<span class="player-chip"[^>]*>/g, "").replace(/<\/span>/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
-            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Schedule</title><style>body{font-family:sans-serif;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #000;padding:5px;text-align:center;}th{background:#003366;color:white;}</style></head><body>" + c + "</body></html>";
+            const out = document.getElementById('output');
+            if(out.style.display=='none') return alert("Generate first.");
+            let c = out.innerHTML.replace(/<span class="player-chip"[^>]*>/g, "").replace(/<\/span>/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
+            const h = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Schedule</title><style>body{font-family:sans-serif;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #000;padding:5px;text-align:center;}th{background:#003366;color:white;}</style></head><body>" + c + "</body></html>";
             const b = new Blob([h], {type: 'application/msword'});
             const u = URL.createObjectURL(b);
             const a = document.createElement('a'); a.href = u; a.download = "schedule.doc"; document.body.appendChild(a); a.click();
@@ -771,4 +755,3 @@
     </script>
 </body>
 </html>
-
