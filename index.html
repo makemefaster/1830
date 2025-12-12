@@ -96,20 +96,8 @@
         tr:nth-child(even) { background-color: #f9f9f9; }
         .sit-out { background-color: #eef; color: #003366; font-weight: bold; }
         
-        /* Drag & Drop Pills (iPad Style) */
-        .player-chip { 
-            display: inline-block; 
-            background-color: #e7f3fe; 
-            border: 1px solid #003366; 
-            color: #003366; 
-            padding: 6px 12px; /* Pill Shape */
-            border-radius: 20px; 
-            margin: 2px; 
-            cursor: grab; 
-            transition: all 0.2s; 
-            font-weight: 500; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
+        /* Drag & Drop */
+        .player-chip { display: inline-block; background-color: #e7f3fe; border: 1px solid #003366; color: #003366; padding: 4px 8px; border-radius: 15px; margin: 2px; cursor: grab; transition: all 0.2s; font-weight: 500; }
         .player-chip:hover { background-color: #003366; color: white; }
         .player-chip:active { cursor: grabbing; }
         .over { transform: scale(1.1); background-color: #ffd700; border-color: #000; }
@@ -130,6 +118,10 @@
         .modal-content { background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; text-align: center; border-radius: 8px; }
         .modal-link { background: #eee; padding: 10px; border: 1px dashed #ccc; word-break: break-all; margin: 15px 0; font-family: monospace; }
         .close-modal { float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .modal-btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; }
+        .btn-copy { background-color: #555; }
+        .btn-open { background-color: #007bff; }
     </style>
 </head>
 <body>
@@ -226,7 +218,10 @@
             <h2 style="color:#003366;">✅ Schedule Published!</h2>
             <p>Share this link with your players:</p>
             <div class="modal-link" id="publishLink"></div>
-            <button onclick="copyLink()" style="background:#003366; color:white; padding:10px 20px; border:none; border-radius:4px; cursor:pointer;">Copy Link</button>
+            <div class="modal-actions">
+                <button class="modal-btn btn-copy" onclick="copyLink()">Copy Link 📋</button>
+                <button class="modal-btn btn-open" onclick="openPublishedLink()">Open Link 🔗</button>
+            </div>
         </div>
     </div>
 
@@ -235,7 +230,7 @@
         import { getDatabase, ref, set, push, remove, onValue, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-        // --- YOUR CONFIG (PASTED) ---
+        // --- YOUR CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
             authDomain: "project-8381867246864635545.firebaseapp.com",
@@ -260,6 +255,9 @@
         window.publishSchedule = publishSchedule;
         window.deleteSchedule = deleteSchedule;
         window.copyLink = copyLink;
+        window.openPublishedLink = openPublishedLink;
+        window.openShareView = openShareView;
+        window.downloadWordDoc = downloadWordDoc;
 
         // --- ROUTER ---
         const urlParams = new URLSearchParams(window.location.search);
@@ -282,10 +280,7 @@
                     
                     // Disable interactivity for public
                     let chips = document.querySelectorAll('.player-chip');
-                    chips.forEach(c => { 
-                        c.draggable = false; 
-                        c.style.cursor = 'default'; 
-                    });
+                    chips.forEach(c => { c.draggable = false; c.style.cursor = 'default'; });
 
                     // INJECT SOCIAL BUTTONS
                     const shareText = encodeURIComponent(`🎾 Order of Play for ${niceDate}: ${window.location.href}`);
@@ -381,7 +376,7 @@
             dateInput.value = nextWed.toISOString().split('T')[0];
         }
 
-        // --- UPDATED PUBLISH LOGIC WITH CONFLICT CHECK ---
+        // --- UPDATED PUBLISH LOGIC ---
         async function publishSchedule() {
             const outBox = document.getElementById('output');
             if(outBox.style.display === 'none') return alert("Generate first.");
@@ -390,7 +385,7 @@
             const dateObj = new Date(dateStr);
             const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-            // 1. Check for conflict
+            // Conflict Check
             const q = query(ref(db, 'public_schedules'), orderByChild('date'), equalTo(dateStr));
             const snapshot = await get(q);
 
@@ -398,20 +393,16 @@
             
             if (snapshot.exists()) {
                 if(!confirm(`⚠️ A schedule for ${niceDate} ALREADY exists.\n\nClick OK to OVERWRITE it (keeps the same link).\nClick Cancel to change the date.`)) {
-                    return; // Stop
+                    return; 
                 }
-                // Overwrite the existing one
                 const existingKey = Object.keys(snapshot.val())[0];
                 targetRef = ref(db, 'public_schedules/' + existingKey);
             } else {
-                // Create new
                 targetRef = push(ref(db, 'public_schedules'));
             }
 
-            // 2. Prepare HTML
             let cleanHTML = outBox.innerHTML.replace(/draggable="true"/g, "").replace(/cursor: grab;/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
 
-            // 3. Save
             set(targetRef, { 
                 date: dateStr, 
                 html: cleanHTML, 
@@ -448,6 +439,58 @@
         function copyLink() {
             const text = document.getElementById('publishLink').innerText;
             navigator.clipboard.writeText(text).then(() => alert("Copied!"));
+        }
+
+        function openPublishedLink() {
+            const url = document.getElementById('publishLink').innerText;
+            if(url) window.open(url, '_blank');
+        }
+
+        // --- PREMIUM SHARE VIEW ---
+        function openShareView() {
+            const outBox = document.getElementById('output');
+            if(document.getElementById('output').style.display === 'none') return alert("Generate first.");
+            
+            let cleanHTML = outBox.innerHTML
+                .replace(/draggable="true"/g, "")
+                .replace(/cursor: grab;/g, "")
+                .replace(/<div class="drag-hint">.*?<\/div>/, "");
+
+            const dateVal = document.getElementById('sessionDate').value;
+            const dateObj = new Date(dateVal);
+            const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            const win = window.open("", "_blank");
+            win.document.write(`
+                <!DOCTYPE html><html><head><title>Order of Play - ${niceDate}</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 40px 20px; color: #1a1a1a; -webkit-print-color-adjust: exact; }
+                    .container { max-width: 800px; margin: 0 auto; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; }
+                    .header { background-color: #003366; color: white; padding: 30px; text-align: center; border-bottom: 4px solid #bfa15f; }
+                    .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
+                    .header h2 { margin: 10px 0 0 0; font-size: 18px; font-weight: 400; opacity: 0.9; }
+                    .content { padding: 40px; }
+                    h2 { color: #003366; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 30px; margin-bottom: 15px; }
+                    h2:first-child { margin-top: 0; }
+                    h3 { font-size: 14px; text-transform: uppercase; color: #666; margin-bottom: 10px; margin-top: 20px; letter-spacing: 1px; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    th { text-align: left; font-size: 12px; color: #888; text-transform: uppercase; padding: 8px 12px; border-bottom: 1px solid #ddd; }
+                    td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
+                    tr:last-child td { border-bottom: none; }
+                    td:first-child { font-weight: bold; color: #003366; width: 15%; }
+                    .player-chip { display: inline-block; padding: 0; font-weight: 500; color: #333; }
+                    .sit-out { background-color: #f8f9fa; color: #555; font-style: italic; border-radius: 6px; font-size: 14px; }
+                    .footer { text-align: center; padding: 20px; font-size: 12px; color: #999; background: #fafafa; border-top: 1px solid #eee; }
+                    .no-print { text-align: center; margin-top: 30px; }
+                    button { background-color: #003366; color: white; border: none; padding: 12px 25px; border-radius: 25px; font-size: 14px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,51,102,0.2); transition: transform 0.1s; }
+                    button:hover { transform: translateY(-1px); }
+                    @media print { body { background: white; padding: 0; } .container { box-shadow: none; max-width: 100%; width: 100%; } .no-print { display: none; } .header { -webkit-print-color-adjust: exact; } }
+                </style></head><body>
+                <div class="container"><div class="header"><h1>Order of Play</h1><h2>${niceDate}</h2></div><div class="content">${cleanHTML}</div><div class="footer">Generated by Tennis Scheduler App</div></div>
+                <div class="no-print"><button onclick="window.print()">🖨️ Print / Save as PDF</button></div>
+                </body></html>
+            `);
+            win.document.close();
         }
     </script>
 
@@ -638,7 +681,7 @@
                 });
                 matches.push(bestC);
             }
-            return { matches: matches, sitOut: [] }; // Sitouts handled by wrapper
+            return { matches: matches, sitOut: [] };
         }
 
         function generateAllSchedules() {
@@ -653,49 +696,39 @@
             const players2 = parse(p2, db);
             const courts2 = parseC(c2);
 
-            // 1. HOUR 1 (4:30 - 5:30): GROUP 1 ONLY
+            // 1. HOUR 1
             const cap1 = courts1.length * 4;
             const sel1 = determinePool([...players1], cap1);
             const res1 = createMatches(sel1.playing, courts1, new Set());
             res1.sitOut = sel1.sitting;
             
-            // Track History
             const hist = new Set();
             res1.matches.forEach(m => { hist.add(getPairKey(m[0], m[1])); hist.add(getPairKey(m[2], m[3])); });
 
-            // 2. MIXER HOUR (5:30 - 6:30): GROUP 1 + GROUP 2
-            // Pool = G1 (everyone) + G2 (everyone)
-            // Note: Even G1 sitters from H1 are now in the mix
-            // But we must prioritize G1 sitters to play if possible
+            // 2. MIXER HOUR
             const allMixerPlayers = [...players1, ...players2];
             const allMixerCourts = [...courts1, ...courts2];
             const capMix = allMixerCourts.length * 4;
 
-            // Prioritize: G1 Sitters > Others
             const g1Sitters = [...res1.sitOut];
             const others = allMixerPlayers.filter(p => !g1Sitters.includes(p));
             
-            // Fill play pool
             let playingMix = [...g1Sitters];
             let sittingMix = [];
             
-            // Add others until full
             const neededMix = capMix - playingMix.length;
-            const selectionMix = determinePool(others, neededMix); // This will sit 5s from the "others" group first
+            const selectionMix = determinePool(others, neededMix); 
             playingMix = [...playingMix, ...selectionMix.playing];
             sittingMix = selectionMix.sitting;
 
             const resMix = createMatches(playingMix, allMixerCourts, hist);
             resMix.sitOut = sittingMix;
 
-            // Update History
             resMix.matches.forEach(m => { hist.add(getPairKey(m[0], m[1])); hist.add(getPairKey(m[2], m[3])); });
 
-            // 3. HOUR 3 (6:30 - 7:30): GROUP 2 ONLY
+            // 3. HOUR 3
             const cap3 = courts2.length * 4;
-            
-            // Logic: G2 players who sat out in Mixer MUST play now
-            const g2SittersMix = sittingMix.filter(p => players2.includes(p)); // Only care about G2 sitters
+            const g2SittersMix = sittingMix.filter(p => players2.includes(p)); 
             const g2Others = players2.filter(p => !g2SittersMix.includes(p));
 
             let playing3 = [...g2SittersMix];
@@ -718,7 +751,7 @@
 
             const out = document.getElementById('output');
             out.innerHTML = h;
-            out.style.display = 'block';
+            document.getElementById('output').style.display = 'block';
             enableDrag();
         }
 
@@ -744,10 +777,10 @@
         }
 
         function downloadWordDoc() {
-            const out = document.getElementById('output');
-            if(out.style.display=='none') return alert("Generate first.");
-            let c = out.innerHTML.replace(/<span class="player-chip"[^>]*>/g, "").replace(/<\/span>/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
-            const h = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Schedule</title><style>body{font-family:sans-serif;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #000;padding:5px;text-align:center;}th{background:#003366;color:white;}</style></head><body>" + c + "</body></html>";
+            const outBox = document.getElementById('output');
+            if(document.getElementById('output').style.display === 'none') return alert("Generate first.");
+            let cleanHTML = outBox.innerHTML.replace(/<span class="player-chip"[^>]*>/g, "").replace(/<\/span>/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
+            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Schedule</title><style>body{font-family:sans-serif;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #000;padding:5px;text-align:center;}th{background:#003366;color:white;}</style></head><body>" + c + "</body></html>";
             const b = new Blob([h], {type: 'application/msword'});
             const u = URL.createObjectURL(b);
             const a = document.createElement('a'); a.href = u; a.download = "schedule.doc"; document.body.appendChild(a); a.click();
