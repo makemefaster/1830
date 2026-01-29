@@ -20,12 +20,12 @@
         .col-weekly { flex: 2; min-width: 400px; }
         .group-container { background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
         .group-header { background-color: #003366; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; }
-        textarea { box-sizing: border-box; width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: monospace; }
+        textarea, input[type="text"] { box-sizing: border-box; width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: monospace; }
         .button-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .action-btn { flex: 1; padding: 12px; font-weight: bold; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
         #btnGenerate { background-color: #003366; } 
         #btnPublish { background-color: #e65100; } 
-        #btnWord { background-color: #2b5797; }
+        #btnPrint { background-color: #555; }
         .schedule-output { background: white; padding: 20px; margin-top: 20px; border: 1px solid #ddd; display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #003366; }
         th { background-color: #003366; color: white; padding: 8px; }
@@ -77,7 +77,7 @@
             <div class="button-row">
                 <button id="btnGenerate" class="action-btn" onclick="startGenerationProcess()">1. Generate</button>
                 <button id="btnPublish" class="action-btn" onclick="publishSchedule()">2. Publish 🌐</button>
-                <button id="btnWord" class="action-btn" onclick="downloadWordDoc()">3. Download Word</button>
+                <button id="btnPrint" class="action-btn" onclick="printSchedule()">3. Print Schedule 🖨️</button>
             </div>
         </div>
         
@@ -152,14 +152,46 @@
             alert("Published successfully!");
         };
 
-        window.downloadWordDoc = function() {
+        window.printSchedule = function() {
             const outBox = document.getElementById('output');
             if (outBox.style.display === 'none') return alert("Generate first.");
             const dateVal = document.getElementById('sessionDate').value;
-            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>table{width:100%;border-collapse:collapse;}th{background:#003366;color:white;}td,th{border:1px solid #000;padding:5px;text-align:center;}</style></head><body><h2>Schedule ${dateVal}</h2>${outBox.innerHTML}</body></html>`;
-            const blob = new Blob([header], { type: 'application/msword' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `Tennis_Schedule_${dateVal}.doc`; a.click();
+            
+            // Clean HTML for printing (remove chips backgrounds for better ink usage)
+            let printContent = outBox.innerHTML.replace(/draggable="true"/g, "");
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Tennis Matchups - ${dateVal}</title>
+                    <style>
+                        body { font-family: sans-serif; padding: 20px; color: #333; }
+                        h2 { text-align: center; color: #003366; margin-bottom: 5px; }
+                        h3 { background: #003366; color: white; padding: 8px; margin-top: 25px; margin-bottom: 5px; font-size: 1.1em; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed; }
+                        th, td { border: 1px solid #999; padding: 10px; text-align: center; }
+                        th { background: #eee; font-size: 0.9em; text-transform: uppercase; }
+                        .sit-out { font-style: italic; color: #666; font-size: 0.9em; margin-top: 5px; border: 1px dashed #ccc; padding: 5px; }
+                        .player-chip { font-weight: bold; color: #000; }
+                        @media print {
+                            body { padding: 0; }
+                            button { display: none; }
+                            h3 { -webkit-print-color-adjust: exact; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>Queen's Club Order of Play</h2>
+                    <p style="text-align:center; font-weight:bold; margin-top:0;">${dateVal}</p>
+                    ${printContent}
+                    <script>
+                        window.onload = function() { window.print(); window.close(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
         };
     </script>
 
@@ -188,7 +220,6 @@
 
         function determinePool(pool, cap) {
             if (pool.length <= cap) return { playing: pool, sitting: [] };
-            // Simple sort: bench the highest ability players first (Robin Hood rule)
             let sorted = [...pool].sort((a,b) => b.ability - a.ability);
             let sit = sorted.slice(0, pool.length - cap);
             let playing = pool.filter(p => !sit.includes(p));
@@ -201,13 +232,11 @@
 
             for (let c = 0; c < courts.length; c++) {
                 if (tempPool.length < 4) break;
-
                 let bestGroup = null;
                 let minRepeats = 99;
                 let bestIdxs = [];
 
-                // Look for a group of 4 that hasn't played together (brute-ish force first 50 attempts)
-                for (let attempt = 0; attempt < 100; attempt++) {
+                for (let attempt = 0; attempt < 150; attempt++) {
                     let idxs = [];
                     while(idxs.length < 4) {
                         let r = Math.floor(Math.random() * tempPool.length);
@@ -215,48 +244,24 @@
                     }
                     let testGroup = idxs.map(i => tempPool[i]);
                     let repeats = getRepeatCount(testGroup, nightHist);
-                    
-                    if (repeats < minRepeats) {
-                        minRepeats = repeats;
-                        bestGroup = testGroup;
-                        bestIdxs = idxs;
-                    }
+                    if (repeats < minRepeats) { minRepeats = repeats; bestGroup = testGroup; bestIdxs = idxs; }
                     if (minRepeats === 0) break; 
                 }
 
-                // Remove selected players from temp pool
                 bestIdxs.sort((a,b) => b-a).forEach(i => tempPool.splice(i, 1));
-
-                // Now optimize teams within that group
                 const g = bestGroup;
-                const combos = [
-                    {p: [g[0], g[1], g[2], g[3]]},
-                    {p: [g[0], g[2], g[1], g[3]]},
-                    {p: [g[0], g[3], g[1], g[2]]}
-                ];
-
+                const combos = [{p:[g[0],g[1],g[2],g[3]]},{p:[g[0],g[2],g[1],g[3]]},{p:[g[0],g[3],g[1],g[2]]}];
                 let bestScore = -Infinity;
                 let bestPairing = null;
 
                 combos.forEach(c => {
                     let score = 0;
                     const p1 = c.p[0], p2 = c.p[1], p3 = c.p[2], p4 = c.p[3];
-                    
-                    // Penalty for repeat partners
                     if (partnerHist.has(getPairKey(p1, p2))) score -= 50000;
                     if (partnerHist.has(getPairKey(p3, p4))) score -= 50000;
-
-                    // Heavy penalty if this combination creates a repeat court-sharing scenario
-                    let reps = getRepeatCount(c.p, nightHist);
-                    if (reps >= 2) score -= 1000000;
-
-                    // Balance check
+                    if (getRepeatCount(c.p, nightHist) >= 2) score -= 1000000;
                     score -= Math.abs((p1.ability + p2.ability) - (p3.ability + p4.ability)) * 100;
-
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestPairing = c.p;
-                    }
+                    if (score > bestScore) { bestScore = score; bestPairing = c.p; }
                 });
                 finalMatches.push(bestPairing);
             }
@@ -276,24 +281,20 @@
             const updateH = (matches) => matches.forEach(m => {
                 partnerHist.add(getPairKey(m[0], m[1]));
                 partnerHist.add(getPairKey(m[2], m[3]));
-                // Add all 6 pair combinations from the court to night history
                 for(let i=0; i<4; i++) for(let j=i+1; j<4; j++) nightHist.add(getPairKey(m[i], m[j]));
             });
 
-            // HOUR 1
             const sel1 = determinePool(p1, c1.length * 4);
             const res1 = createMatches(sel1.playing, c1, partnerHist, nightHist);
             res1.sitOut = p1.filter(p => !res1.matches.flat().includes(p));
             updateH(res1.matches);
 
-            // MIXER HOUR
             const mixerPool = [...p1, ...p2];
             const selMix = determinePool(mixerPool, (c1.length + c2.length) * 4);
             const resMix = createMatches(selMix.playing, [...c1, ...c2], partnerHist, nightHist);
             resMix.sitOut = mixerPool.filter(p => !resMix.matches.flat().includes(p));
             updateH(resMix.matches);
 
-            // HOUR 3
             const sel3 = determinePool(p2, c2.length * 4);
             const res3 = createMatches(sel3.playing, c2, partnerHist, nightHist);
             res3.sitOut = p2.filter(p => !res3.matches.flat().includes(p));
@@ -311,19 +312,21 @@
         function parse(t, db) { return t.split(/[\n,]+/).map(n => db[n.trim().toLowerCase()]).filter(x => x); }
         function parseC(t) { return t.split(',').map(c => c.trim()).filter(c => c); }
         function render(res, cNames) {
-            let t = `<table><tr><th>Court</th><th>Team A</th><th>Team B</th></tr>`;
+            let t = `<table><tr><th width="15%">Court</th><th width="40%">Team A</th><th width="40%">Team B</th></tr>`;
             res.matches.forEach((m, i) => {
-                t += `<tr><td>${cNames[i]||(i+1)}</td><td>${chip(m[0])} & ${chip(m[1])}</td><td>${chip(m[2])} & ${chip(m[3])}</td></tr>`;
+                t += `<tr><td><strong>${cNames[i]||(i+1)}</strong></td><td>${chip(m[0])} & ${chip(m[1])}</td><td>${chip(m[2])} & ${chip(m[3])}</td></tr>`;
             });
+            let sitOutText = "";
             if (res.sitOut && res.sitOut.length) {
-                t += `<tr><td class="sit-out" colspan="3">Sitting Out: ${res.sitOut.map(p => p.name).join(', ')}</td></tr>`;
+                sitOutText = `<div class="sit-out"><strong>Sitting Out:</strong> ${res.sitOut.map(p => p.name).join(', ')}</div>`;
             }
-            return t + "</table>";
+            return t + "</table>" + sitOutText;
         }
-        function chip(p) { return `<span class="player-chip" draggable="true">${p.name}</span>`; }
+        function chip(p) { return `<span class="player-chip">${p.name}</span>`; }
         function enableDrag() {
             let src = null;
             document.querySelectorAll('.player-chip').forEach(el => {
+                el.draggable = true;
                 el.ondragstart = (e) => { src = el; e.dataTransfer.setData('text', el.innerHTML); };
                 el.ondragover = (e) => e.preventDefault();
                 el.ondrop = (e) => { if (src !== el) { const tmp = el.innerHTML; el.innerHTML = src.innerHTML; src.innerHTML = tmp; } };
