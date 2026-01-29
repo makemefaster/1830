@@ -656,90 +656,126 @@
             return { playing: [...fives, ...others], sitting: sit };
         }
 
-        function createMatches(pool, courts, hist) {
-            pool.sort((a,b)=>b.ability-a.ability);
-            const matches = [];
-            let temp = [...pool];
-            for(let i=0; i<courts.length; i++) {
-                if(temp.length < 4) break;
-                let p1 = temp.shift(), p2 = temp.shift(), p3 = temp.shift(), p4 = temp.shift();
-                
-                const combos = [[[0,1],[2,3]], [[0,2],[1,3]], [[0,3],[1,2]]];
-                let bestSc = -9999, bestC = null;
-                const set = [p1,p2,p3,p4];
+// --- UPDATED MIXER LOGIC WITH NIGHT-LONG MEMORY ---
 
-                combos.forEach(c => {
-                    const t1a=set[c[0][0]], t1b=set[c[0][1]], t2a=set[c[1][0]], t2b=set[c[1][1]];
-                    let sc = 0;
-                    if(hist.has(getPairKey(t1a,t1b))) sc -= 10000;
-                    if(hist.has(getPairKey(t2a,t2b))) sc -= 10000;
-                    const m1 = (t1a.gender!=t1b.gender && t1a.gender!='U' && t1b.gender!='U');
-                    const m2 = (t2a.gender!=t2b.gender && t2a.gender!='U' && t2b.gender!='U');
-                    if(m1 && m2) sc += 500; else if(m1||m2) sc+=50;
-                    sc -= Math.abs((t1a.ability+t1b.ability)-(t2a.ability+t2b.ability)) * 20;
-                    if(sc > bestSc) { bestSc = sc; bestC = [t1a,t1b,t2a,t2b]; }
-                });
-                matches.push(bestC);
-            }
-            return { matches: matches, sitOut: [] };
+function getPairKey(a, b) { 
+    return [a.name, b.name].sort().join('|'); 
+}
+
+// New helper to track everyone who has shared a court
+function getQuadKeys(p1, p2, p3, p4) {
+    const players = [p1.name, p2.name, p3.name, p4.name].sort();
+    const pairs = [];
+    for (let i = 0; i < players.length; i++) {
+        for (let j = i + 1; j < players.length; j++) {
+            pairs.push(players[i] + '|' + players[j]);
         }
+    }
+    return pairs;
+}
 
-        function generateAllSchedules() {
-            const p1 = document.getElementById('playersG1').value;
-            const c1 = document.getElementById('courtsG1').value;
-            const p2 = document.getElementById('playersG2').value;
-            const c2 = document.getElementById('courtsG2').value;
-            const db = getMasterDatabase();
+function createMatches(pool, courts, partnerHist, nightHist) {
+    pool.sort((a, b) => b.ability - a.ability);
+    const matches = [];
+    let temp = [...pool];
+    
+    for (let i = 0; i < courts.length; i++) {
+        if (temp.length < 4) break;
+        let set = [temp.shift(), temp.shift(), temp.shift(), temp.shift()];
+        
+        const combos = [
+            { teams: [[0, 1], [2, 3]] },
+            { teams: [[0, 2], [1, 3]] },
+            { teams: [[0, 3], [1, 2]] }
+        ];
 
-            const players1 = parse(p1, db);
-            const courts1 = parseC(c1);
-            const players2 = parse(p2, db);
-            const courts2 = parseC(c2);
+        let bestSc = -999999, bestC = null;
 
-            // 1. HOUR 1
-            const cap1 = courts1.length * 4;
-            const sel1 = determinePool([...players1], cap1);
-            const res1 = createMatches(sel1.playing, courts1, new Set());
-            res1.sitOut = sel1.sitting;
-            
-            const hist = new Set();
-            res1.matches.forEach(m => { hist.add(getPairKey(m[0], m[1])); hist.add(getPairKey(m[2], m[3])); });
+        combos.forEach(c => {
+            const p = [set[c.teams[0][0]], set[c.teams[0][1]], set[c.teams[1][0]], set[c.teams[1][1]]];
+            let sc = 0;
 
-            // 2. MIXER HOUR
-            const allMixerPlayers = [...players1, ...players2];
-            const allMixerCourts = [...courts1, ...courts2];
-            const capMix = allMixerCourts.length * 4;
+            // 1. Partner History (Same night, previous hours)
+            if (partnerHist.has(getPairKey(p[0], p[1]))) sc -= 20000;
+            if (partnerHist.has(getPairKey(p[2], p[3]))) sc -= 20000;
 
-            const g1Sitters = [...res1.sitOut];
-            const others = allMixerPlayers.filter(p => !g1Sitters.includes(p));
-            
-            let playingMix = [...g1Sitters];
-            let sittingMix = [];
-            
-            const neededMix = capMix - playingMix.length;
-            const selectionMix = determinePool(others, neededMix); 
-            playingMix = [...playingMix, ...selectionMix.playing];
-            sittingMix = selectionMix.sitting;
+            // 2. Court Sharing History (Night-long "Quad" prevention)
+            const currentPairs = getQuadKeys(p[0], p[1], p[2], p[3]);
+            let sharedCount = 0;
+            currentPairs.forEach(pair => {
+                if (nightHist.has(pair)) sharedCount++;
+            });
 
-            const resMix = createMatches(playingMix, allMixerCourts, hist);
-            resMix.sitOut = sittingMix;
+            // Penalty: Ideally people share the court with max one other player from before
+            if (sharedCount > 1) sc -= (sharedCount * 5000); 
 
-            resMix.matches.forEach(m => { hist.add(getPairKey(m[0], m[1])); hist.add(getPairKey(m[2], m[3])); });
+            // 3. Mixed Doubles Preference
+            const m1 = (p[0].gender != p[1].gender && p[0].gender != 'U' && p[1].gender != 'U');
+            const m2 = (p[2].gender != p[3].gender && p[2].gender != 'U' && p[3].gender != 'U');
+            if (m1 && m2) sc += 500; else if (m1 || m2) sc += 50;
 
-            // 3. HOUR 3
-            const cap3 = courts2.length * 4;
-            const g2SittersMix = sittingMix.filter(p => players2.includes(p)); 
-            const g2Others = players2.filter(p => !g2SittersMix.includes(p));
+            // 4. Ability Balance
+            sc -= Math.abs((p[0].ability + p[1].ability) - (p[2].ability + p[3].ability)) * 20;
 
-            let playing3 = [...g2SittersMix];
-            let sitting3 = [];
-            const needed3 = cap3 - playing3.length;
-            const selection3 = determinePool(g2Others, needed3);
-            playing3 = [...playing3, ...selection3.playing];
-            sitting3 = selection3.sitting;
+            if (sc > bestSc) {
+                bestSc = sc;
+                bestC = p;
+            }
+        });
+        matches.push(bestC);
+    }
+    return { matches: matches, sitOut: [] };
+}
 
-            const res3 = createMatches(playing3, courts2, hist);
-            res3.sitOut = sitting3;
+function generateAllSchedules() {
+    const p1 = document.getElementById('playersG1').value;
+    const c1 = document.getElementById('courtsG1').value;
+    const p2 = document.getElementById('playersG2').value;
+    const c2 = document.getElementById('courtsG2').value;
+    const db = getMasterDatabase();
+
+    const players1 = parse(p1, db);
+    const courts1 = parseC(c1);
+    const players2 = parse(p2, db);
+    const courts2 = parseC(c2);
+
+    // Global Night History
+    const partnerHist = new Set();
+    const nightHist = new Set();
+
+    const updateHistory = (matches) => {
+        matches.forEach(m => {
+            // Track Partners
+            partnerHist.add(getPairKey(m[0], m[1]));
+            partnerHist.add(getPairKey(m[2], m[3]));
+            // Track everyone on this court
+            getQuadKeys(m[0], m[1], m[2], m[3]).forEach(pair => nightHist.add(pair));
+        });
+    };
+
+    // HOUR 1
+    const sel1 = determinePool([...players1], courts1.length * 4);
+    const res1 = createMatches(sel1.playing, courts1, partnerHist, nightHist);
+    res1.sitOut = sel1.sitting;
+    updateHistory(res1.matches);
+
+    // MIXER HOUR
+    const allMixerPlayers = [...players1, ...players2];
+    const allMixerCourts = [...courts1, ...courts2];
+    const selectionMix = determinePool(allMixerPlayers.filter(p => !res1.sitOut.includes(p)), (allMixerCourts.length * 4) - res1.sitOut.length);
+    
+    const resMix = createMatches([...res1.sitOut, ...selectionMix.playing], allMixerCourts, partnerHist, nightHist);
+    resMix.sitOut = selectionMix.sitting;
+    updateHistory(resMix.matches);
+
+    // HOUR 3
+    const selection3 = determinePool(players2.filter(p => !resMix.sitOut.includes(p)), (courts2.length * 4) - resMix.sitOut.filter(p => players2.includes(p)).length);
+    
+    const res3 = createMatches([...resMix.sitOut.filter(p => players2.includes(p)), ...selection3.playing], courts2, partnerHist, nightHist);
+    res3.sitOut = selection3.sitting;
+
+    // ... (Keep the existing render logic below) ...
+}
 
             // RENDER
             let h = "<div class='drag-hint'>💡 <strong>Tip:</strong> Drag names to swap. Click <strong>Publish</strong> when done.</div>";
@@ -788,3 +824,4 @@
     </script>
 </body>
 </html>
+
