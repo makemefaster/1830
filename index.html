@@ -8,137 +8,81 @@
         /* Queen's Club Style - Blue & White */
         body { font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 1100px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; color: #333; }
         
-        /* MODES UTILITY */
         .admin-only { display: block; } 
         .public-only { display: none; } 
 
-        /* When body has class 'public-view', flip the visibility */
         body.public-view .admin-only { display: none !important; }
         body.public-view .public-only { display: block !important; }
 
-        /* Login Overlay */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #003366; display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-box { background: white; padding: 40px; border-radius: 8px; text-align: center; width: 300px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .login-box h2 { color: #003366; margin-top: 0; }
         .login-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .login-box button { width: 100%; padding: 10px; background: #003366; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .login-box button:hover { background: #002244; }
-        .login-error { color: red; font-size: 0.9em; margin-top: 10px; display: none; }
-
-        /* Main App Layout */
+        
         #app-container { display: none; }
         
-        /* Header */
         .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #003366; padding-bottom: 10px; margin-bottom: 20px; }
         h1 { color: #003366; margin: 0; font-size: 1.8em; }
         .user-controls { display: flex; align-items: center; gap: 15px; }
         .user-email { font-size: 0.9em; color: #666; font-weight: bold; }
         .logout-btn { padding: 5px 10px; background: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
 
-        /* Public Date Header Style */
-        .public-date-display {
-            text-align: center;
-            color: #003366;
-            font-size: 2.2em;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 4px solid #003366;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        .public-date-display { text-align: center; color: #003366; font-size: 2.2em; margin-bottom: 20px; padding: 20px; background: white; border-radius: 8px; border-bottom: 4px solid #003366; }
 
-        /* Published List Dashboard */
         #published-dashboard { background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ccc; }
         .pub-item { background: white; padding: 10px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
-        .pub-link a { color: #003366; font-weight: bold; text-decoration: none; }
-        .pub-link a:hover { text-decoration: underline; }
-        .del-btn { background: #d9534f; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
 
-        /* Columns */
         .container-flex { display: flex; gap: 20px; flex-wrap: wrap; }
         .col-master { flex: 1; min-width: 300px; }
         .col-weekly { flex: 2; min-width: 400px; }
 
-        .group-container { background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .group-header { background-color: #003366; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; font-weight: 500; }
-        .master-header { background-color: #444; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; font-size: 1.2em; font-weight: 500; }
+        .group-container { background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
+        .group-header { background-color: #003366; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; }
+        .master-header { background-color: #444; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin: -20px -20px 20px -20px; }
 
-        label { font-weight: bold; display: block; margin-top: 15px; color: #003366; }
-        .help-text { font-size: 0.85em; color: #666; margin-bottom: 5px; font-style: italic; }
-        
-        input[type="date"], textarea, select { box-sizing: border-box; width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; }
-        textarea { font-family: monospace; font-size: 14px; }
+        textarea { box-sizing: border-box; width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: monospace; }
 
-        /* Action Buttons */
         .button-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .action-btn { flex: 1; padding: 12px; font-weight: bold; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
         #btnGenerate { background-color: #003366; } 
         #btnPublish { background-color: #e65100; } 
         #btnWord { background-color: #2b5797; }
-        #btnClear { background-color: #d9534f; color: white; padding: 5px 15px; font-size: 14px; border:none; border-radius: 4px; cursor: pointer; }
 
-        /* Resolver */
         .resolver-box { background-color: #fff3cd; border: 2px solid #ffc107; padding: 20px; margin-top: 20px; border-radius: 8px; display: none; }
-        .unknown-item { background: white; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .suggestion-btn { background-color: #17a2b8; color: white; padding: 5px 10px; border:none; border-radius:3px; cursor:pointer;}
-        .add-btn { background-color: #28a745; color: white; padding: 5px 10px; border:none; border-radius:3px; cursor:pointer;}
-
-        /* Output & Public View */
         .schedule-output { background: white; padding: 20px; margin-top: 20px; border: 1px solid #ddd; display: none; }
-        /* Force display in public view */
-        body.public-view .schedule-output { display: block !important; border: none; padding: 0; margin-top: 0; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #003366; font-size: 0.9em; }
-        th { background-color: #003366; color: white; padding: 8px; text-align: center; }
-        td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #003366; }
+        th { background-color: #003366; color: white; padding: 8px; }
+        td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         .sit-out { background-color: #eef; color: #003366; font-weight: bold; }
         
-        /* Drag & Drop */
-        .player-chip { display: inline-block; background-color: #e7f3fe; border: 1px solid #003366; color: #003366; padding: 4px 8px; border-radius: 15px; margin: 2px; cursor: grab; transition: all 0.2s; font-weight: 500; }
-        .player-chip:hover { background-color: #003366; color: white; }
-        .player-chip:active { cursor: grabbing; }
-        .over { transform: scale(1.1); background-color: #ffd700; border-color: #000; }
-        .drag-hint { background-color: #e7f3fe; border-left: 6px solid #2196F3; margin-bottom: 15px; padding: 10px; font-size: 0.9em; }
+        .player-chip { display: inline-block; background-color: #e7f3fe; border: 1px solid #003366; color: #003366; padding: 4px 8px; border-radius: 15px; margin: 2px; cursor: grab; font-weight: 500; }
+        .drag-hint { background-color: #fff3cd; border-left: 6px solid #ffc107; margin-bottom: 15px; padding: 10px; font-size: 0.9em; }
+
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: white; margin: 15% auto; padding: 20px; width: 80%; max-width: 500px; border-radius: 8px; text-align: center; }
+        .modal-link { background: #eee; padding: 10px; word-break: break-all; margin: 15px 0; font-family: monospace; }
         
-        /* Share Buttons (Public) */
-        .share-controls { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin-left: auto; margin-right: auto; }
-        .share-btn { display: block; width: 100%; padding: 15px; text-align: center; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 1.1em; transition: opacity 0.2s; }
-        .share-btn:hover { opacity: 0.9; }
+        .share-controls { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: 30px auto; }
+        .share-btn { display: block; width: 100%; padding: 15px; text-align: center; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }
         .share-wa { background-color: #25D366; }
         .share-email { background-color: #555; }
-
-        .error-box { background-color: #ffe6e6; color: #d8000c; padding: 10px; border: 1px solid #d8000c; margin-top: 20px; display: none; }
-        #dbStatus { font-size: 0.85em; color: green; font-weight: bold; margin-top: 5px; text-align: right; }
-        
-        /* MODAL */
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; text-align: center; border-radius: 8px; }
-        .modal-link { background: #eee; padding: 10px; border: 1px dashed #ccc; word-break: break-all; margin: 15px 0; font-family: monospace; }
-        .close-modal { float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
-        .modal-btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; }
-        .btn-copy { background-color: #555; }
-        .btn-open { background-color: #007bff; }
     </style>
 </head>
 <body>
 
-    <div id="login-overlay" style="display:none;">
+    <div id="login-overlay">
         <div class="login-box">
             <h2>🎾 Tennis Planner</h2>
-            <p style="font-size:0.9em; color:#666;">Please log in to manage schedules.</p>
             <input type="email" id="email" placeholder="Email Address">
             <input type="password" id="password" placeholder="Password">
             <button onclick="login()">Log In</button>
-            <div id="login-msg" class="login-error"></div>
+            <div id="login-msg" style="color:red; display:none; margin-top:10px;"></div>
         </div>
     </div>
 
     <div id="app-container">
-        
         <div class="header-row admin-only">
             <h1>🎾 Wednesday Staggered Schedule</h1>
             <div class="user-controls">
@@ -152,29 +96,22 @@
         </div>
 
         <div id="published-dashboard" class="admin-only" style="display:none;">
-            <strong>📡 Published Schedules (Active Links)</strong>
-            <div id="publishedList" style="margin-top:10px;">Loading...</div>
+            <strong>📡 Published Schedules</strong>
+            <div id="publishedList">Loading...</div>
         </div>
 
         <div class="admin-only">
-            <label for="sessionDate">Session Date:</label>
+            <label>Session Date:</label>
             <input type="date" id="sessionDate" onchange="saveDataToCloud()">
 
             <div class="container-flex" style="margin-top:20px;">
                 <div class="col-master">
-                    <div class="group-container" style="background-color: #f9f9f9;">
-                        <div class="master-header">📂 Master Player Bank</div>
-                        <div class="help-text">Format: <strong>Name, Rating, M/W</strong></div>
-                        <textarea id="masterList" rows="30" oninput="saveDataToCloud(); updateDBStatus();"></textarea>
-                        <div id="dbStatus"></div>
+                    <div class="group-container">
+                        <div class="master-header">📂 Master Player Bank (Name, Rating, M/W)</div>
+                        <textarea id="masterList" rows="25" oninput="saveDataToCloud()"></textarea>
                     </div>
                 </div>
-
                 <div class="col-weekly">
-                    <div style="text-align: right; margin-bottom: 10px;">
-                        <button id="btnClear" onclick="clearWeeklyInputs()">🗑️ Clear Groups</button>
-                    </div>
-
                     <div class="group-container">
                         <div class="group-header">Group 1: Early (4:30 - 6:30)</div>
                         <label>Players:</label>
@@ -182,11 +119,10 @@
                         <label>Courts:</label>
                         <textarea id="courtsG1" rows="1" oninput="saveDataToCloud()">1, 2</textarea>
                     </div>
-
                     <div class="group-container">
                         <div class="group-header">Group 2: Late (5:30 - 7:30)</div>
                         <label>Players:</label>
-                        <textarea id="playersG2" rows="10" oninput="saveDataToCloud()"></textarea>
+                        <textarea id="playersG2" rows="6" oninput="saveDataToCloud()"></textarea>
                         <label>Courts:</label>
                         <textarea id="courtsG2" rows="1" oninput="saveDataToCloud()">3, 4, 5, 6</textarea>
                     </div>
@@ -195,42 +131,34 @@
 
             <div class="button-row">
                 <button id="btnGenerate" class="action-btn" onclick="startGenerationProcess()">1. Generate</button>
-                <button id="btnPublish" class="action-btn" onclick="publishSchedule()">2. Publish to Web 🌐</button>
+                <button id="btnPublish" class="action-btn" onclick="publishSchedule()">2. Publish 🌐</button>
                 <button id="btnWord" class="action-btn" onclick="downloadWordDoc()">3. Download Word</button>
             </div>
-            
-            <div id="errorContainer" class="error-box"></div>
 
             <div id="resolverContainer" class="resolver-box">
-                <div style="font-weight:bold; color:#856404; margin-bottom:10px;">⚠️ Unknown Players Detected</div>
+                <div style="font-weight:bold; margin-bottom:10px;">⚠️ Unknown Players</div>
                 <div id="resolverList"></div>
             </div>
         </div>
         
         <div id="output" class="schedule-output"></div>
-
         <div id="publicShareButtons" class="public-only share-controls"></div>
     </div>
 
     <div id="publishModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('publishModal').style.display='none'">&times;</span>
-            <h2 style="color:#003366;">✅ Schedule Published!</h2>
-            <p>Share this link with your players:</p>
+            <h2>✅ Published!</h2>
             <div class="modal-link" id="publishLink"></div>
-            <div class="modal-actions">
-                <button class="modal-btn btn-copy" onclick="copyLink()">Copy Link 📋</button>
-                <button class="modal-btn btn-open" onclick="openPublishedLink()">Open Link 🔗</button>
-            </div>
+            <button onclick="copyLink()">Copy Link</button>
+            <button onclick="document.getElementById('publishModal').style.display='none'">Close</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getDatabase, ref, set, push, remove, onValue, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+        import { getDatabase, ref, set, push, remove, onValue, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-        // --- YOUR CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyCZPyd_grTtcXGGBA3s7CQVGt-SXDm_QkA",
             authDomain: "project-8381867246864635545.firebaseapp.com",
@@ -244,56 +172,43 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const auth = getAuth(app);
-
         let currentUser = null;
-        let isCloudLoading = false;
 
-        window.login = login;
-        window.logout = logout;
-        window.saveDataToCloud = saveDataToCloud;
-        window.clearWeeklyInputs = clearWeeklyInputs;
-        window.publishSchedule = publishSchedule;
-        window.deleteSchedule = deleteSchedule;
-        window.copyLink = copyLink;
-        window.openPublishedLink = openPublishedLink;
-        window.openShareView = openShareView;
-        window.downloadWordDoc = downloadWordDoc;
+        // Attach globals
+        window.login = async () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            try { await signInWithEmailAndPassword(auth, e, p); } 
+            catch (err) { document.getElementById('login-msg').innerText = err.message; document.getElementById('login-msg').style.display='block'; }
+        };
+        window.logout = () => signOut(auth).then(() => window.location.reload());
+        
+        window.saveDataToCloud = () => {
+            if (!currentUser) return;
+            set(ref(db, 'users/' + currentUser.uid), {
+                master: document.getElementById('masterList').value,
+                p1: document.getElementById('playersG1').value,
+                c1: document.getElementById('courtsG1').value,
+                p2: document.getElementById('playersG2').value,
+                c2: document.getElementById('courtsG2').value,
+                date: document.getElementById('sessionDate').value
+            });
+        };
 
-        // --- ROUTER ---
+        // Router & Auth
         const urlParams = new URLSearchParams(window.location.search);
         const publicId = urlParams.get('id');
 
         if (publicId) {
             document.body.classList.add('public-view');
             document.getElementById('app-container').style.display = 'block';
-            
-            const schedRef = ref(db, 'public_schedules/' + publicId);
-            onValue(schedRef, (snapshot) => {
-                const data = snapshot.val();
+            document.getElementById('login-overlay').style.display = 'none';
+            onValue(ref(db, 'public_schedules/' + publicId), (snap) => {
+                const data = snap.val();
                 if (data) {
-                    const dateObj = new Date(data.date);
-                    const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                    
-                    document.getElementById('publicDateHeader').innerText = niceDate;
+                    document.getElementById('publicDateHeader').innerText = data.date;
                     document.getElementById('output').innerHTML = data.html;
                     document.getElementById('output').style.display = 'block';
-                    
-                    // Disable interactivity for public
-                    let chips = document.querySelectorAll('.player-chip');
-                    chips.forEach(c => { c.draggable = false; c.style.cursor = 'default'; });
-
-                    // INJECT SOCIAL BUTTONS
-                    const shareText = encodeURIComponent(`🎾 Order of Play for ${niceDate}: ${window.location.href}`);
-                    const waLink = `https://wa.me/?text=${shareText}`;
-                    const mailLink = `mailto:?subject=Tennis Order of Play&body=${shareText}`;
-                    
-                    document.getElementById('publicShareButtons').innerHTML = `
-                        <a href="${waLink}" target="_blank" class="share-btn share-wa">Share via WhatsApp 💬</a>
-                        <a href="${mailLink}" class="share-btn share-email">Share via Email ✉️</a>
-                    `;
-
-                } else {
-                    document.getElementById('app-container').innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Schedule not found.</h2>";
                 }
             });
         } else {
@@ -302,526 +217,178 @@
                     currentUser = user;
                     document.getElementById('login-overlay').style.display = 'none';
                     document.getElementById('app-container').style.display = 'block';
-                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
                     document.getElementById('user-display').innerText = user.email;
-                    loadDataFromCloud();
+                    onValue(ref(db, 'users/' + user.uid), (snap) => {
+                        const d = snap.val();
+                        if (d) {
+                            document.getElementById('masterList').value = d.master || "";
+                            document.getElementById('playersG1').value = d.p1 || "";
+                            document.getElementById('courtsG1').value = d.c1 || "1, 2";
+                            document.getElementById('playersG2').value = d.p2 || "";
+                            document.getElementById('courtsG2').value = d.c2 || "3, 4, 5, 6";
+                            document.getElementById('sessionDate').value = d.date || "";
+                        }
+                    });
                     loadPublishedList();
-                } else {
-                    currentUser = null;
-                    document.getElementById('login-overlay').style.display = 'flex';
-                    document.getElementById('app-container').style.display = 'none';
                 }
-            });
-        }
-
-        async function login() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            try { await signInWithEmailAndPassword(auth, e, p); } 
-            catch (error) { document.getElementById('login-msg').innerText = error.message; document.getElementById('login-msg').style.display='block'; }
-        }
-
-        async function logout() { await signOut(auth); window.location.reload(); }
-
-        function loadDataFromCloud() {
-            if (!currentUser) return;
-            isCloudLoading = true;
-            const userRef = ref(db, 'users/' + currentUser.uid);
-            onValue(userRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    if (data.master) document.getElementById('masterList').value = data.master;
-                    if (data.p1) document.getElementById('playersG1').value = data.p1;
-                    if (data.c1) document.getElementById('courtsG1').value = data.c1;
-                    if (data.p2) document.getElementById('playersG2').value = data.p2;
-                    if (data.c2) document.getElementById('courtsG2').value = data.c2;
-                    if (data.date) document.getElementById('sessionDate').value = data.date;
-                    window.updateDBStatus();
-                } else { setNextWednesday(); }
-                isCloudLoading = false;
-            });
-        }
-
-        function saveDataToCloud() {
-            if (!currentUser || isCloudLoading) return;
-            const data = {
-                master: document.getElementById('masterList').value,
-                p1: document.getElementById('playersG1').value,
-                c1: document.getElementById('courtsG1').value,
-                p2: document.getElementById('playersG2').value,
-                c2: document.getElementById('courtsG2').value,
-                date: document.getElementById('sessionDate').value
-            };
-            set(ref(db, 'users/' + currentUser.uid), data);
-        }
-
-        function clearWeeklyInputs() {
-            if(confirm("Clear weekly inputs? Master Bank will remain.")) {
-                document.getElementById('playersG1').value = "";
-                document.getElementById('playersG2').value = "";
-                document.getElementById('resolverContainer').style.display = 'none';
-                document.getElementById('output').style.display = 'none';
-                saveDataToCloud();
-            }
-        }
-
-        function setNextWednesday() {
-            const dateInput = document.getElementById('sessionDate');
-            if(dateInput.value) return; 
-            const today = new Date();
-            let diff = (3 + 7 - today.getDay()) % 7;
-            if (diff === 0) diff = 7; 
-            const nextWed = new Date(today);
-            nextWed.setDate(today.getDate() + diff);
-            dateInput.value = nextWed.toISOString().split('T')[0];
-        }
-
-        // --- UPDATED PUBLISH LOGIC ---
-        async function publishSchedule() {
-            const outBox = document.getElementById('output');
-            if(outBox.style.display === 'none') return alert("Generate first.");
-            
-            const dateStr = document.getElementById('sessionDate').value;
-            const dateObj = new Date(dateStr);
-            const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
-            // Conflict Check
-            const q = query(ref(db, 'public_schedules'), orderByChild('date'), equalTo(dateStr));
-            const snapshot = await get(q);
-
-            let targetRef;
-            
-            if (snapshot.exists()) {
-                if(!confirm(`⚠️ A schedule for ${niceDate} ALREADY exists.\n\nClick OK to OVERWRITE it (keeps the same link).\nClick Cancel to change the date.`)) {
-                    return; 
-                }
-                const existingKey = Object.keys(snapshot.val())[0];
-                targetRef = ref(db, 'public_schedules/' + existingKey);
-            } else {
-                targetRef = push(ref(db, 'public_schedules'));
-            }
-
-            let cleanHTML = outBox.innerHTML.replace(/draggable="true"/g, "").replace(/cursor: grab;/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
-
-            set(targetRef, { 
-                date: dateStr, 
-                html: cleanHTML, 
-                created: Date.now() 
-            }).then(() => {
-                const link = window.location.href.split('?')[0] + "?id=" + targetRef.key;
-                document.getElementById('publishLink').innerText = link;
-                document.getElementById('publishModal').style.display = 'block';
             });
         }
 
         function loadPublishedList() {
-            const listRef = ref(db, 'public_schedules');
-            onValue(listRef, (snapshot) => {
+            onValue(ref(db, 'public_schedules'), (snap) => {
                 const list = document.getElementById('publishedList');
                 list.innerHTML = "";
-                if(!snapshot.exists()) { list.innerHTML = "No active schedules."; return; }
-                snapshot.forEach(child => {
-                    const data = child.val();
-                    const key = child.key;
-                    const url = window.location.href.split('?')[0] + "?id=" + key;
+                snap.forEach(child => {
+                    const d = child.val();
                     const div = document.createElement('div');
                     div.className = 'pub-item';
-                    div.innerHTML = `<div class="pub-link">📅 ${data.date} <br><a href="${url}" target="_blank" style="font-size:0.8em; color:#666;">${url}</a></div><button class="del-btn" onclick="deleteSchedule('${key}')">Delete</button>`;
+                    div.innerHTML = `<span>${d.date}</span> <button onclick="deleteSchedule('${child.key}')">Delete</button>`;
                     list.appendChild(div);
                 });
+                document.getElementById('published-dashboard').style.display = 'block';
             });
         }
 
-        function deleteSchedule(key) {
-            if(confirm("Delete this schedule?")) { remove(ref(db, 'public_schedules/' + key)); }
-        }
+        window.deleteSchedule = (key) => confirm("Delete?") && remove(ref(db, 'public_schedules/' + key));
 
-        function copyLink() {
-            const text = document.getElementById('publishLink').innerText;
-            navigator.clipboard.writeText(text).then(() => alert("Copied!"));
-        }
+        window.publishSchedule = async () => {
+            const out = document.getElementById('output');
+            if (out.style.display === 'none') return alert("Generate first.");
+            const date = document.getElementById('sessionDate').value;
+            const cleanHTML = out.innerHTML.replace(/draggable="true"/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
+            const newRef = push(ref(db, 'public_schedules'));
+            await set(newRef, { date, html: cleanHTML });
+            const link = window.location.href.split('?')[0] + "?id=" + newRef.key;
+            document.getElementById('publishLink').innerText = link;
+            document.getElementById('publishModal').style.display = 'block';
+        };
 
-        function openPublishedLink() {
-            const url = document.getElementById('publishLink').innerText;
-            if(url) window.open(url, '_blank');
-        }
+        window.copyLink = () => navigator.clipboard.writeText(document.getElementById('publishLink').innerText).then(() => alert("Copied"));
 
-        // --- PREMIUM SHARE VIEW ---
-        function openShareView() {
+        // WORD EXPORT FIX
+        window.downloadWordDoc = function() {
             const outBox = document.getElementById('output');
-            if(document.getElementById('output').style.display === 'none') return alert("Generate first.");
-            
-            let cleanHTML = outBox.innerHTML
-                .replace(/draggable="true"/g, "")
-                .replace(/cursor: grab;/g, "")
-                .replace(/<div class="drag-hint">.*?<\/div>/, "");
-
+            if (outBox.style.display === 'none') return alert("Generate first.");
+            let cleanHTML = outBox.innerHTML.replace(/<div class="drag-hint">.*?<\/div>/, "").replace(/<span class="player-chip"[^>]*>/g, "").replace(/<\/span>/g, "");
             const dateVal = document.getElementById('sessionDate').value;
-            const dateObj = new Date(dateVal);
-            const niceDate = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:sans-serif;}table{width:100%;border-collapse:collapse;}th{background:#003366;color:white;}td,th{border:1px solid #000;padding:5px;}</style></head><body><h2>Schedule ${dateVal}</h2>${cleanHTML}</body></html>`;
+            const blob = new Blob([header], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `Schedule_${dateVal}.doc`; a.click();
+        };
 
-            const win = window.open("", "_blank");
-            win.document.write(`
-                <!DOCTYPE html><html><head><title>Order of Play - ${niceDate}</title>
-                <style>
-                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 40px 20px; color: #1a1a1a; -webkit-print-color-adjust: exact; }
-                    .container { max-width: 800px; margin: 0 auto; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; }
-                    .header { background-color: #003366; color: white; padding: 30px; text-align: center; border-bottom: 4px solid #bfa15f; }
-                    .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
-                    .header h2 { margin: 10px 0 0 0; font-size: 18px; font-weight: 400; opacity: 0.9; }
-                    .content { padding: 40px; }
-                    h2 { color: #003366; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 30px; margin-bottom: 15px; }
-                    h2:first-child { margin-top: 0; }
-                    h3 { font-size: 14px; text-transform: uppercase; color: #666; margin-bottom: 10px; margin-top: 20px; letter-spacing: 1px; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    th { text-align: left; font-size: 12px; color: #888; text-transform: uppercase; padding: 8px 12px; border-bottom: 1px solid #ddd; }
-                    td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
-                    tr:last-child td { border-bottom: none; }
-                    td:first-child { font-weight: bold; color: #003366; width: 15%; }
-                    .player-chip { display: inline-block; padding: 0; font-weight: 500; color: #333; }
-                    .sit-out { background-color: #f8f9fa; color: #555; font-style: italic; border-radius: 6px; font-size: 14px; }
-                    .footer { text-align: center; padding: 20px; font-size: 12px; color: #999; background: #fafafa; border-top: 1px solid #eee; }
-                    .no-print { text-align: center; margin-top: 30px; }
-                    button { background-color: #003366; color: white; border: none; padding: 12px 25px; border-radius: 25px; font-size: 14px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,51,102,0.2); transition: transform 0.1s; }
-                    button:hover { transform: translateY(-1px); }
-                    @media print { body { background: white; padding: 0; } .container { box-shadow: none; max-width: 100%; width: 100%; } .no-print { display: none; } .header { -webkit-print-color-adjust: exact; } }
-                </style></head><body>
-                <div class="container"><div class="header"><h1>Order of Play</h1><h2>${niceDate}</h2></div><div class="content">${cleanHTML}</div><div class="footer">Generated by Tennis Scheduler App</div></div>
-                <div class="no-print"><button onclick="window.print()">🖨️ Print / Save as PDF</button></div>
-                </body></html>
-            `);
-            win.document.close();
-        }
     </script>
 
     <script>
+        // --- LOGIC ENGINE ---
         function getMasterDatabase() {
-            const masterText = document.getElementById('masterList').value;
             const db = {};
-            const lines = masterText.split(/\r?\n/);
-            lines.forEach(line => {
-                if(!line.trim()) return;
-                const parts = line.split(',');
-                if(parts.length >= 2) {
-                    const name = parts[0].trim();
-                    const ability = parseFloat(parts[1].trim());
-                    let gender = 'U';
-                    if(parts.length >= 3) gender = parts[2].trim().toUpperCase();
-                    if(name && !isNaN(ability)) {
-                        db[name.toLowerCase()] = { name: name, ability: ability, gender: gender };
-                    }
-                }
+            document.getElementById('masterList').value.split('\n').forEach(line => {
+                const p = line.split(',');
+                if (p.length >= 2) db[p[0].trim().toLowerCase()] = { name: p[0].trim(), ability: parseFloat(p[1]), gender: (p[2]||'U').trim().toUpperCase() };
             });
             return db;
         }
 
-        function updateDBStatus() {
-            const db = getMasterDatabase();
-            const count = Object.keys(db).length;
-            document.getElementById('dbStatus').innerText = `✅ Cloud Synced: ${count} players`;
+        function getPairKey(a, b) { return [a.name, b.name].sort().join('|'); }
+        function getQuadKeys(p1, p2, p3, p4) {
+            const names = [p1.name, p2.name, p3.name, p4.name].sort();
+            const pairs = [];
+            for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) pairs.push(names[i] + '|' + names[j]);
+            return pairs;
         }
-
-        // --- SMARTER FUZZY MATCHING ---
-        function getSimilarity(s1, s2) {
-            let longer = s1; let shorter = s2;
-            if (s1.length < s2.length) { longer = s2; shorter = s1; }
-            let longerLength = longer.length;
-            if (longerLength == 0) return 1.0;
-            return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
-        }
-        function editDistance(s1, s2) {
-            s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
-            let costs = [];
-            for (let i = 0; i <= s1.length; i++) {
-                let lastValue = i;
-                for (let j = 0; j <= s2.length; j++) {
-                    if (i == 0) costs[j] = j;
-                    else {
-                        if (j > 0) {
-                            let newValue = costs[j - 1];
-                            if (s1.charAt(i - 1) != s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                            costs[j - 1] = lastValue;
-                            lastValue = newValue;
-                        }
-                    }
-                }
-                if (i > 0) costs[s2.length] = lastValue;
-            }
-            return costs[s2.length];
-        }
-
-        function findClosestMatch(inputName, dbKeys) {
-            const lowerInput = inputName.toLowerCase();
-            let bestMatch = null;
-            let highestScore = 0;
-            dbKeys.forEach(key => {
-                const lowerKey = key.toLowerCase();
-                let score = 0;
-                if (lowerKey.startsWith(lowerInput)) score = 0.95;
-                else if (lowerKey.includes(lowerInput)) score = 0.85;
-                else { score = getSimilarity(lowerInput, lowerKey); }
-                if (score > highestScore) { highestScore = score; bestMatch = key; }
-            });
-            return highestScore > 0.5 ? bestMatch : null;
-        }
-
-        // --- PRE-CHECK ---
-        function startGenerationProcess() {
-            document.getElementById('resolverContainer').style.display = 'none';
-            document.getElementById('output').style.display = 'none';
-            document.getElementById('errorContainer').style.display = 'none';
-
-            const p1 = document.getElementById('playersG1').value;
-            const p2 = document.getElementById('playersG2').value;
-            const db = getMasterDatabase();
-            const unknowns = [];
-
-            const scan = (text, fid) => {
-                text.split(/[\r\n,]+/).forEach(token => {
-                    token = token.trim();
-                    if(!token || /\d/.test(token)) return; 
-                    if (!db[token.toLowerCase()]) {
-                        if(!unknowns.find(u => u.name === token)) unknowns.push({name:token, id:fid});
-                    }
-                });
-            };
-            scan(p1, 'playersG1'); scan(p2, 'playersG2');
-
-            if (unknowns.length > 0) showResolver(unknowns, db);
-            else generateAllSchedules();
-        }
-
-        function showResolver(unknowns, db) {
-            const list = document.getElementById('resolverList');
-            list.innerHTML = "";
-            const keys = Object.keys(db);
-            unknowns.forEach(u => {
-                const closestKey = findClosestMatch(u.name, keys);
-                let suggestionHtml = "";
-                if (closestKey) {
-                    const properName = db[closestKey].name;
-                    suggestionHtml = `<button class="suggestion-btn" onclick="fixTypo('${u.name}', '${properName}', '${u.id}')">Fix: <strong>${properName}</strong></button> <span style="font-size:0.9em; margin:0 5px;">or</span> `;
-                }
-                const div = document.createElement('div');
-                div.className = 'unknown-item';
-                div.innerHTML = `<span style="font-weight:bold; color:#d9534f; min-width:80px;">"${u.name}"</span>${suggestionHtml}<div style="display:flex; gap:5px; align-items:center;"><input type="number" id="r_${u.name}" placeholder="Rate" step="0.5" style="width:60px; padding:5px;"><select id="g_${u.name}" style="padding:5px;"><option value="M">M</option><option value="W">W</option></select><button class="add-btn" onclick="addToBank('${u.name}')">Add New</button></div>`;
-                list.appendChild(div);
-            });
-            document.getElementById('resolverContainer').style.display = 'block';
-        }
-
-        window.fixTypo = function(bad, good, id) {
-            const el = document.getElementById(id);
-            el.value = el.value.replace(new RegExp(`\\b${bad}\\b`, 'g'), good);
-            saveDataToCloud(); 
-            startGenerationProcess();
-        }
-
-        window.addToBank = function(name) {
-            const r = document.getElementById('r_'+name).value;
-            const g = document.getElementById('g_'+name).value;
-            if(!r) return alert("Enter rating");
-            const master = document.getElementById('masterList');
-            master.value += `\n${name}, ${r}, ${g}`;
-            saveDataToCloud(); 
-            startGenerationProcess();
-        }
-
-        // --- MERGED MIXER LOGIC ---
-        function parse(txt, db) {
-            const res = [];
-            txt.split(/[\r\n,]+/).forEach(t => {
-                t = t.trim();
-                if(!t) return;
-                if(db[t.toLowerCase()]) res.push(db[t.toLowerCase()]);
-                else if (/\d/.test(t)) {}
-                else res.push({name: t+" (?)", ability:3, gender:'U'}); 
-            });
-            return res;
-        }
-        function parseC(t) { return t.replace(/[\r\n]+/g, ',').split(',').map(c=>c.trim()).filter(c=>c.length>0); }
-        function shuffle(a) { return a.sort(()=>Math.random()-0.5); }
-        function getPairKey(a,b) { return [a.name, b.name].sort().join('|'); }
 
         function determinePool(pool, cap) {
-            if(pool.length <= cap) return {playing: pool, sitting: []};
-            const needed = pool.length - cap;
-            // Robin Hood: Prioritize 5s to sit
-            const fives = shuffle(pool.filter(p=>p.ability>=5));
-            const others = shuffle(pool.filter(p=>p.ability<5)).sort((a,b)=>b.ability-a.ability);
-            
+            if (pool.length <= cap) return { playing: pool, sitting: [] };
+            const shuffle = (a) => a.sort(() => Math.random() - 0.5);
+            const fives = shuffle(pool.filter(p => p.ability >= 5));
+            const others = shuffle(pool.filter(p => p.ability < 5));
             const sit = [];
-            while(sit.length < needed && fives.length) sit.push(fives.pop());
-            while(sit.length < needed && others.length) sit.push(others.shift());
-            return { playing: [...fives, ...others], sitting: sit };
+            const needed = pool.length - cap;
+            while (sit.length < needed && fives.length) sit.push(fives.pop());
+            while (sit.length < needed && others.length) sit.push(others.pop());
+            const playing = pool.filter(p => !sit.includes(p));
+            return { playing, sitting: sit };
         }
 
-// --- UPDATED MIXER LOGIC WITH NIGHT-LONG MEMORY ---
-
-function getPairKey(a, b) { 
-    return [a.name, b.name].sort().join('|'); 
-}
-
-// New helper to track everyone who has shared a court
-function getQuadKeys(p1, p2, p3, p4) {
-    const players = [p1.name, p2.name, p3.name, p4.name].sort();
-    const pairs = [];
-    for (let i = 0; i < players.length; i++) {
-        for (let j = i + 1; j < players.length; j++) {
-            pairs.push(players[i] + '|' + players[j]);
+        function createMatches(pool, courts, partnerHist, nightHist) {
+            pool.sort((a, b) => b.ability - a.ability);
+            const matches = [];
+            let temp = [...pool];
+            for (let i = 0; i < courts.length; i++) {
+                if (temp.length < 4) break;
+                const set = [temp.shift(), temp.shift(), temp.shift(), temp.shift()];
+                const combos = [{t:[[0,1],[2,3]]}, {t:[[0,2],[1,3]]}, {t:[[0,3],[1,2]]}];
+                let bestSc = -999999, bestM = null;
+                combos.forEach(c => {
+                    const p = [set[c.t[0][0]], set[c.t[0][1]], set[c.t[1][0]], set[c.t[1][1]]];
+                    let sc = 0;
+                    if (partnerHist.has(getPairKey(p[0], p[1]))) sc -= 20000;
+                    if (partnerHist.has(getPairKey(p[2], p[3]))) sc -= 20000;
+                    let shared = 0;
+                    getQuadKeys(...p).forEach(k => nightHist.has(k) && shared++);
+                    if (shared > 1) sc -= (shared * 5000); 
+                    const m1 = p[0].gender != p[1].gender && p[0].gender != 'U' && p[1].gender != 'U';
+                    const m2 = p[2].gender != p[3].gender && p[2].gender != 'U' && p[3].gender != 'U';
+                    if (m1 && m2) sc += 500;
+                    sc -= Math.abs((p[0].ability + p[1].ability) - (p[2].ability + p[3].ability)) * 20;
+                    if (sc > bestSc) { bestSc = sc; bestM = p; }
+                });
+                matches.push(bestM);
+            }
+            return { matches };
         }
-    }
-    return pairs;
-}
 
-function createMatches(pool, courts, partnerHist, nightHist) {
-    pool.sort((a, b) => b.ability - a.ability);
-    const matches = [];
-    let temp = [...pool];
-    
-    for (let i = 0; i < courts.length; i++) {
-        if (temp.length < 4) break;
-        let set = [temp.shift(), temp.shift(), temp.shift(), temp.shift()];
-        
-        const combos = [
-            { teams: [[0, 1], [2, 3]] },
-            { teams: [[0, 2], [1, 3]] },
-            { teams: [[0, 3], [1, 2]] }
-        ];
+        function startGenerationProcess() {
+            const db = getMasterDatabase();
+            const p1 = parse(document.getElementById('playersG1').value, db);
+            const c1 = parseC(document.getElementById('courtsG1').value);
+            const p2 = parse(document.getElementById('playersG2').value, db);
+            const c2 = parseC(document.getElementById('courtsG2').value);
 
-        let bestSc = -999999, bestC = null;
-
-        combos.forEach(c => {
-            const p = [set[c.teams[0][0]], set[c.teams[0][1]], set[c.teams[1][0]], set[c.teams[1][1]]];
-            let sc = 0;
-
-            // 1. Partner History (Same night, previous hours)
-            if (partnerHist.has(getPairKey(p[0], p[1]))) sc -= 20000;
-            if (partnerHist.has(getPairKey(p[2], p[3]))) sc -= 20000;
-
-            // 2. Court Sharing History (Night-long "Quad" prevention)
-            const currentPairs = getQuadKeys(p[0], p[1], p[2], p[3]);
-            let sharedCount = 0;
-            currentPairs.forEach(pair => {
-                if (nightHist.has(pair)) sharedCount++;
+            const partnerHist = new Set(), nightHist = new Set();
+            const updateH = (m) => m.forEach(match => {
+                partnerHist.add(getPairKey(match[0], match[1]));
+                partnerHist.add(getPairKey(match[2], match[3]));
+                getQuadKeys(...match).forEach(k => nightHist.add(k));
             });
 
-            // Penalty: Ideally people share the court with max one other player from before
-            if (sharedCount > 1) sc -= (sharedCount * 5000); 
+            const res1 = createMatches(determinePool(p1, c1.length * 4).playing, c1, partnerHist, nightHist);
+            res1.sitOut = p1.filter(p => !res1.matches.flat().includes(p));
+            updateH(res1.matches);
 
-            // 3. Mixed Doubles Preference
-            const m1 = (p[0].gender != p[1].gender && p[0].gender != 'U' && p[1].gender != 'U');
-            const m2 = (p[2].gender != p[3].gender && p[2].gender != 'U' && p[3].gender != 'U');
-            if (m1 && m2) sc += 500; else if (m1 || m2) sc += 50;
+            const mixPool = [...p1, ...p2].filter(p => !res1.sitOut.includes(p));
+            const resMix = createMatches(determinePool([...res1.sitOut, ...mixPool], (c1.length + c2.length) * 4).playing, [...c1, ...c2], partnerHist, nightHist);
+            resMix.sitOut = [...p1, ...p2].filter(p => !resMix.matches.flat().includes(p));
+            updateH(resMix.matches);
 
-            // 4. Ability Balance
-            sc -= Math.abs((p[0].ability + p[1].ability) - (p[2].ability + p[3].ability)) * 20;
+            const res3 = createMatches(determinePool(p2.filter(p => !resMix.sitOut.includes(p)), c2.length * 4).playing, c2, partnerHist, nightHist);
+            res3.sitOut = p2.filter(p => !res3.matches.flat().includes(p));
 
-            if (sc > bestSc) {
-                bestSc = sc;
-                bestC = p;
-            }
-        });
-        matches.push(bestC);
-    }
-    return { matches: matches, sitOut: [] };
-}
-
-function generateAllSchedules() {
-    const p1 = document.getElementById('playersG1').value;
-    const c1 = document.getElementById('courtsG1').value;
-    const p2 = document.getElementById('playersG2').value;
-    const c2 = document.getElementById('courtsG2').value;
-    const db = getMasterDatabase();
-
-    const players1 = parse(p1, db);
-    const courts1 = parseC(c1);
-    const players2 = parse(p2, db);
-    const courts2 = parseC(c2);
-
-    // Global Night History
-    const partnerHist = new Set();
-    const nightHist = new Set();
-
-    const updateHistory = (matches) => {
-        matches.forEach(m => {
-            // Track Partners
-            partnerHist.add(getPairKey(m[0], m[1]));
-            partnerHist.add(getPairKey(m[2], m[3]));
-            // Track everyone on this court
-            getQuadKeys(m[0], m[1], m[2], m[3]).forEach(pair => nightHist.add(pair));
-        });
-    };
-
-    // HOUR 1
-    const sel1 = determinePool([...players1], courts1.length * 4);
-    const res1 = createMatches(sel1.playing, courts1, partnerHist, nightHist);
-    res1.sitOut = sel1.sitting;
-    updateHistory(res1.matches);
-
-    // MIXER HOUR
-    const allMixerPlayers = [...players1, ...players2];
-    const allMixerCourts = [...courts1, ...courts2];
-    const selectionMix = determinePool(allMixerPlayers.filter(p => !res1.sitOut.includes(p)), (allMixerCourts.length * 4) - res1.sitOut.length);
-    
-    const resMix = createMatches([...res1.sitOut, ...selectionMix.playing], allMixerCourts, partnerHist, nightHist);
-    resMix.sitOut = selectionMix.sitting;
-    updateHistory(resMix.matches);
-
-    // HOUR 3
-    const selection3 = determinePool(players2.filter(p => !resMix.sitOut.includes(p)), (courts2.length * 4) - resMix.sitOut.filter(p => players2.includes(p)).length);
-    
-    const res3 = createMatches([...resMix.sitOut.filter(p => players2.includes(p)), ...selection3.playing], courts2, partnerHist, nightHist);
-    res3.sitOut = selection3.sitting;
-
-    // ... (Keep the existing render logic below) ...
-}
-
-            // RENDER
-            let h = "<div class='drag-hint'>💡 <strong>Tip:</strong> Drag names to swap. Click <strong>Publish</strong> when done.</div>";
-            h += renderGroup("4:30 PM - 5:30 PM (Early Birds)", res1, courts1);
-            h += "<br><hr style='border-top:3px double #003366'><br>";
-            h += renderGroup("5:30 PM - 6:30 PM (The Mixer)", resMix, allMixerCourts);
-            h += "<br><hr style='border-top:3px double #003366'><br>";
-            h += renderGroup("6:30 PM - 7:30 PM (Late Finishers)", res3, courts2);
-
-            const out = document.getElementById('output');
-            out.innerHTML = h;
+            let h = "<div class='drag-hint'>💡 Tip: Drag names to swap.</div>";
+            h += render("4:30 - 5:30", res1, c1) + "<br>" + render("5:30 - 6:30", resMix, [...c1, ...c2]) + "<br>" + render("6:30 - 7:30", res3, c2);
+            document.getElementById('output').innerHTML = h;
             document.getElementById('output').style.display = 'block';
             enableDrag();
         }
 
-        function renderGroup(time, r, cNames) {
+        function parse(t, db) { return t.split(/[\n,]+/).map(n => db[n.trim().toLowerCase()]).filter(x => x); }
+        function parseC(t) { return t.split(',').map(c => c.trim()).filter(c => c); }
+        function render(time, r, cNames) {
             let t = `<h3>${time}</h3><table><tr><th>Court</th><th>Team A</th><th>Team B</th></tr>`;
-            r.matches.forEach((m, i) => {
-                t += `<tr><td style="font-weight:bold;">${cNames[i]||(i+1)}</td><td>${chip(m[0])} & ${chip(m[1])}</td><td>${chip(m[2])} & ${chip(m[3])}</td></tr>`;
-            });
-            if(r.sitOut.length) t+= `<tr><td class="sit-out" colspan="3">Sit Out: ${r.sitOut.map(chip).join(' ')}</td></tr>`;
+            r.matches.forEach((m, i) => t += `<tr><td>${cNames[i]||(i+1)}</td><td>${chip(m[0])} & ${chip(m[1])}</td><td>${chip(m[2])} & ${chip(m[3])}</td></tr>`);
+            if (r.sitOut.length) t += `<tr><td class="sit-out" colspan="3">Sit Out: ${r.sitOut.map(p => p.name).join(', ')}</td></tr>`;
             return t + "</table>";
         }
-
         function chip(p) { return `<span class="player-chip" draggable="true">${p.name}</span>`; }
-
         function enableDrag() {
-            let dragSrc = null;
-            document.querySelectorAll('.player-chip').forEach(item => {
-                item.addEventListener('dragstart', function(e) { dragSrc=this; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/html', this.innerHTML); this.style.opacity='0.4'; });
-                item.addEventListener('dragover', function(e) { e.preventDefault(); return false; });
-                item.addEventListener('drop', function(e) { e.stopPropagation(); if(dragSrc!=this){ const t=this.innerHTML; this.innerHTML=dragSrc.innerHTML; dragSrc.innerHTML=t; } return false; });
-                item.addEventListener('dragend', function() { this.style.opacity='1'; });
+            let src = null;
+            document.querySelectorAll('.player-chip').forEach(el => {
+                el.ondragstart = (e) => { src = el; e.dataTransfer.setData('text', el.innerHTML); };
+                el.ondragover = (e) => e.preventDefault();
+                el.ondrop = (e) => { if (src !== el) { const tmp = el.innerHTML; el.innerHTML = src.innerHTML; src.innerHTML = tmp; } };
             });
-        }
-
-        function downloadWordDoc() {
-            const outBox = document.getElementById('output');
-            if(document.getElementById('output').style.display === 'none') return alert("Generate first.");
-            let cleanHTML = outBox.innerHTML.replace(/<span class="player-chip"[^>]*>/g, "").replace(/<\/span>/g, "").replace(/<div class="drag-hint">.*?<\/div>/, "");
-            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Schedule</title><style>body{font-family:sans-serif;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #000;padding:5px;text-align:center;}th{background:#003366;color:white;}</style></head><body>" + c + "</body></html>";
-            const b = new Blob([h], {type: 'application/msword'});
-            const u = URL.createObjectURL(b);
-            const a = document.createElement('a'); a.href = u; a.download = "schedule.doc"; document.body.appendChild(a); a.click();
         }
     </script>
 </body>
 </html>
-
